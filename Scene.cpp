@@ -58,7 +58,13 @@ Mesh* gCrateMesh;
 Mesh* gGroundMesh;
 Mesh* gLightMesh;
 
-const int NUM_MODELS = 3;
+const int NUM_PIXEL_MODELS = 3;
+SceneModel* gPixelModels[NUM_PIXEL_MODELS];
+
+const int NUM_WIGGLE_MODELS = 0;
+//SceneModel* gPixelModels[NUM_WIGGLE_MODELS];
+
+const int NUM_MODELS = NUM_PIXEL_MODELS + NUM_WIGGLE_MODELS;
 SceneModel* gModels[NUM_MODELS];
 
 SceneModel gTeapot = SceneModel(&gTeapotTexture);
@@ -75,6 +81,9 @@ const int MAX_SPOTLIGHTS = 25;
 const int NUM_POINTLIGHTS = 2;
 const int MAX_POINTLIGHTS = 25;
 
+const int NUM_LIGHTS = NUM_SPOTLIGHTS + NUM_POINTLIGHTS;
+
+Light* gLights[NUM_LIGHTS];
 Spotlight gSpotlights[NUM_SPOTLIGHTS];
 Pointlight gPointlights[NUM_POINTLIGHTS];
 
@@ -260,16 +269,23 @@ bool InitScene()
 	gCrate.model->SetRotation({ 0.0f, ToRadians(-20.0f), 0.0f });
 
     // Light set-up
+    int lightIndex = 0;
     for (int i = 0; i < NUM_SPOTLIGHTS; ++i)
     {
         gSpotlights[i].texture = &gLightTexture;
         gSpotlights[i].model = new Model(gLightMesh);
+
+        gLights[lightIndex] = &gSpotlights[i];
+        lightIndex++;
     }
 
     for (int i = 0; i < NUM_POINTLIGHTS; ++i)
     {
         gPointlights[i].texture = &gLightTexture;
         gPointlights[i].model = new Model(gLightMesh);
+
+        gLights[lightIndex] = &gSpotlights[i];
+        lightIndex++;
     }
 
     // Orbiting spotlight
@@ -282,7 +298,7 @@ bool InitScene()
     // Sun (fake directional light)
     gSpotlights[1].colour = { 1.0f, 0.8f, 0.2f };
     gSpotlights[1].SetStrength(100);
-    gSpotlights[1].model->SetPosition({ -130, 85, 280 });
+    gSpotlights[1].model->SetPosition({ -130, 80, 285 });
     gSpotlights[1].model->FaceTarget({ 0, 10, 0 });
     gSpotlights[1].isSpot = false;
 
@@ -295,7 +311,7 @@ bool InitScene()
     // Colour changing light
     gPointlights[1].colour = { 1.0f, 0.0f, 0.24f };
     gPointlights[1].SetStrength(25);
-    gPointlights[1].model->SetPosition({ -25, 18, 10 });
+    gPointlights[1].model->SetPosition({ -20, 18, 10 });
     gPointlights[1].model->FaceTarget(gCamera->Position());
 
     return true;
@@ -379,7 +395,7 @@ void RenderSceneFromCamera(Camera* camera)
 
     // Render model - it will update the model's world matrix and send it to the GPU in a constant buffer, then it will call
     // the Mesh render function, which will set up vertex & index buffer before finally calling Draw on the GPU
-    for (int i = 0; i < NUM_MODELS; i++)
+    for (int i = 0; i < NUM_PIXEL_MODELS; i++)
     {
         gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
         gModels[i]->model->Render();
@@ -401,10 +417,10 @@ void RenderSceneFromCamera(Camera* camera)
     gD3DContext->RSSetState(gCullNoneState);
 
     // Render all the lights in the arrays
-    for (int i = 0; i < NUM_SPOTLIGHTS; ++i)
+    for (int i = 0; i < NUM_LIGHTS; ++i)
     {
-        gPerModelConstants.objectColour = gSpotlights[i].colour; // Set any per-model constants apart from the world matrix just before calling render (light colour here)
-        gSpotlights[i].model->Render();
+        gPerModelConstants.objectColour = gLights[i]->colour; // Set any per-model constants apart from the world matrix just before calling render (light colour here)
+        gLights[i]->model->Render();
     }
     for (int i = 0; i < NUM_POINTLIGHTS; ++i)
     {

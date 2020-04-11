@@ -21,8 +21,6 @@ ID3D11VertexShader* gBasicTransformVertexShader = nullptr; // Used before light 
 ID3D11PixelShader*  gLightModelPixelShader  = nullptr;
 ID3D11PixelShader*  gDepthOnlyPixelShader  = nullptr;
 
-
-
 //--------------------------------------------------------------------------------------
 // Shader creation / destruction
 //--------------------------------------------------------------------------------------
