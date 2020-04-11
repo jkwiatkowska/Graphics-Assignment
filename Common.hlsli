@@ -136,17 +136,17 @@ float SampleShadowMap(Texture2D shadowMap, SamplerState PointClamp, float4 light
     return strength;
 }
 
-void CalculateLighting(Texture2D ShadowMap[25], LightingPixelShaderInput input, SamplerState PointClamp, out float3 diffuseLight, out float3 specularLight)
+void CalculateLighting(Texture2D ShadowMap[25], float3 worldPosition, float3 worldNormal, SamplerState PointClamp, out float3 diffuseLight, out float3 specularLight)
 {
     diffuseLight = gAmbientColour;
     specularLight = 0;
 
-    float3 cameraDirection = normalize(gCameraPosition - input.worldPosition);
+    float3 cameraDirection = normalize(gCameraPosition - worldPosition);
 
     for (int i = 0; i < gSpotlightNumber; i++)
     {
         // Direction from pixel to light
-        float3 lightDirection = normalize(gSpotlights[i].position - input.worldPosition);
+        float3 lightDirection = normalize(gSpotlights[i].position - worldPosition);
 
         // Check if pixel is within light cone
         if (dot(gSpotlights[i].facing, -lightDirection) > gSpotlights[i].cosHalfAngle)
@@ -154,7 +154,7 @@ void CalculateLighting(Texture2D ShadowMap[25], LightingPixelShaderInput input, 
             // Using the world position of the current pixel and the matrices of the light (as a camera), find the 2D position of the
             // pixel *as seen from the light*. Will use this to find which part of the shadow map to look at.
             // These are the same as the view / projection matrix multiplies in a vertex shader (can improve performance by putting these lines in vertex shader)
-            float4 lightViewPosition = mul(gSpotlights[i].viewMatrix, float4(input.worldPosition, 1.0f));
+            float4 lightViewPosition = mul(gSpotlights[i].viewMatrix, float4(worldPosition, 1.0f));
             float4 lightProjection = mul(gSpotlights[i].projectionMatrix, lightViewPosition);
 
             // Sample the shadow map to determine how strong the shadow on this pixel is
@@ -162,30 +162,30 @@ void CalculateLighting(Texture2D ShadowMap[25], LightingPixelShaderInput input, 
 
             if (strength > 0)
             {
-                float3 lightDist = length(gSpotlights[i].position - input.worldPosition);
+                float3 lightDist = length(gSpotlights[i].position - worldPosition);
                 if (gSpotlights[i].isSpot == 0) lightDist = 150; // Set value for fake directional light
 
-                diffuseLight += (gSpotlights[i].colour * max(dot(input.worldNormal, lightDirection), 0) / lightDist) * strength;
+                diffuseLight += (gSpotlights[i].colour * max(dot(worldNormal, lightDirection), 0) / lightDist) * strength;
 
                 float3 halfway = normalize(lightDirection + cameraDirection);
-                specularLight += diffuseLight * pow(max(dot(input.worldNormal, halfway), 0), gSpecularPower) * strength;
+                specularLight += diffuseLight * pow(max(dot(worldNormal, halfway), 0), gSpecularPower) * strength;
             }
         }
         else if (gSpotlights[i].isSpot == 0) // If not an actual spotlight light up the remaining area
         {
-            diffuseLight += gSpotlights[i].colour * max(dot(input.worldNormal, lightDirection), 0) / 150;
+            diffuseLight += gSpotlights[i].colour * max(dot(worldNormal, lightDirection), 0) / 150;
             float3 halfway = normalize(lightDirection + cameraDirection);
-            specularLight += diffuseLight * pow(max(dot(input.worldNormal, halfway), 0), gSpecularPower);
+            specularLight += diffuseLight * pow(max(dot(worldNormal, halfway), 0), gSpecularPower);
         }
     }
 
     for (int i = 0; i < gPointlightNumber; i++)
     {
-        float3 lightDirection = normalize(gPointlights[i].position - input.worldPosition);
+        float3 lightDirection = normalize(gPointlights[i].position - worldPosition);
 
-        float3 lightDist = length(gPointlights[i].position - input.worldPosition);
-        diffuseLight += gPointlights[i].colour * max(dot(input.worldNormal, lightDirection), 0) / lightDist;
+        float3 lightDist = length(gPointlights[i].position - worldPosition);
+        diffuseLight += gPointlights[i].colour * max(dot(worldNormal, lightDirection), 0) / lightDist;
         float3 halfway = normalize(lightDirection + cameraDirection);
-        specularLight += diffuseLight * pow(max(dot(input.worldNormal, halfway), 0), gSpecularPower);
+        specularLight += diffuseLight * pow(max(dot(worldNormal, halfway), 0), gSpecularPower);
     }
 }
