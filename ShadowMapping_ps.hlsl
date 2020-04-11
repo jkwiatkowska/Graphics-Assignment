@@ -17,9 +17,9 @@
 Texture2D DiffuseSpecularMap : register(t0); // Textures here can contain a diffuse map (main colour) in their rgb channels and a specular map (shininess) in the a channel
 SamplerState TexSampler      : register(s0); // A sampler is a filter for a texture like bilinear, trilinear or anisotropic - this is the sampler used for the texture above
 
-Texture2D ShadowMapLight[25];
 SamplerState PointClamp   : register(s1); // No filtering for shadow maps (you might think you could use trilinear or similar, but it will filter light depths not the shadows cast...)
 
+Texture2D ShadowMap[25] : register(t2);
 
 //--------------------------------------------------------------------------------------
 // Shader code
@@ -37,82 +37,9 @@ float4 main(LightingPixelShaderInput input) : SV_Target
 
 	///////////////////////
 	// Calculate lighting
-    
-    // Direction from pixel to camera
-    float3 cameraDirection = normalize(gCameraPosition - input.worldPosition);
-
-	// Lights
-
-	float3 diffuseLight = gAmbientColour;
-	float3 specularLight = 0;
-	
-	for (int i = 0; i < gSpotlightNumber; i++)
-	{
-		// Direction from pixel to light
-		float3 lightDirection = normalize(gSpotlights[i].position - input.worldPosition);
-
-		// Check if pixel is within light cone
-		if (dot(gSpotlights[i].facing, -lightDirection) > gSpotlights[i].cosHalfAngle)
-		{
-			// Using the world position of the current pixel and the matrices of the light (as a camera), find the 2D position of the
-			// pixel *as seen from the light*. Will use this to find which part of the shadow map to look at.
-			// These are the same as the view / projection matrix multiplies in a vertex shader (can improve performance by putting these lines in vertex shader)
-			float4 lightViewPosition = mul(gSpotlights[i].viewMatrix, float4(input.worldPosition, 1.0f));
-			float4 lightProjection = mul(gSpotlights[i].projectionMatrix, lightViewPosition);
-
-			// Convert 2D pixel position as viewed from light into texture coordinates for shadow map - an advanced topic related to the projection step
-			// Detail: 2D position x & y get perspective divide, then converted from range -1->1 to UV range 0->1. Also flip V axis
-			float2 shadowMapUV = 0.5f * lightProjection.xy / lightProjection.w + float2(0.5f, 0.5f);
-			shadowMapUV.y = 1.0f - shadowMapUV.y;	// Check if pixel is within light cone
-
-			// Get depth of this pixel if it were visible from the light (another advanced projection step)
-			float depthFromLight = lightProjection.z / lightProjection.w;// - DepthAdjust; //*** Adjustment so polygons don't shadow themselves
-
-			// Smooth the shadow by sampling nearby points of the shadow map as well
-			float2 offset;
-			float strength = 0;
-			float maxStrength = 0;
-			for (int j = -3; j < 4; j++)
-			{
-				for (int k = -3; k < 4; k++)
-				{
-					offset.x = j * 0.0001f;
-					offset.y = k * 0.0001f;
-					if (depthFromLight < ShadowMapLight[i].Sample(PointClamp, shadowMapUV + offset).r)
-					{
-						strength += 0.0204081633f;
-					}
-				}
-			}
-
-			if (strength > 0)
-			{
-				float3 lightDist = length(gSpotlights[i].position - input.worldPosition);
-				if (gSpotlights[i].isSpot == 0) lightDist = 150; // Set value for fake directional light
-
-				diffuseLight += (gSpotlights[i].colour * max(dot(input.worldNormal, lightDirection), 0) / lightDist) * strength; 
-
-				float3 halfway = normalize(lightDirection + cameraDirection);
-				specularLight += diffuseLight * pow(max(dot(input.worldNormal, halfway), 0), gSpecularPower) * strength; 
-			}
-		}
-		else if (gSpotlights[i].isSpot == 0) // If not an actual spotlight light up the remaining area
-		{
-			diffuseLight += gSpotlights[i].colour * max(dot(input.worldNormal, lightDirection), 0) / 150;
-			float3 halfway = normalize(lightDirection + cameraDirection);
-			specularLight += diffuseLight * pow(max(dot(input.worldNormal, halfway), 0), gSpecularPower);
-		}
-	}
-	
-	for (int i = 0; i < gPointlightNumber; i++)
-	{
-		float3 lightDirection = normalize(gPointlights[i].position - input.worldPosition);
-
-		float3 lightDist = length(gPointlights[i].position - input.worldPosition);
-		diffuseLight += gPointlights[i].colour * max(dot(input.worldNormal, lightDirection), 0) / lightDist; 
-		float3 halfway = normalize(lightDirection + cameraDirection);
-		specularLight += diffuseLight * pow(max(dot(input.worldNormal, halfway), 0), gSpecularPower);
-	}
+	float3 diffuseLight;
+	float3 specularLight;
+	CalculateLighting(ShadowMap, input, PointClamp, diffuseLight, specularLight);
 
 	////////////////////
 	// Combine lighting and textures

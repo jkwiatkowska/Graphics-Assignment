@@ -35,9 +35,9 @@
 const int NUM_TEXTURES = 4;
 Texture* gTextures[NUM_TEXTURES];
 
-Texture gTrollTexture = Texture("TrollDiffuseSpecular.dds");
+Texture gTeapotTexture = Texture("StoneDiffuseSpecular.dds");
 Texture gCrateTexture = Texture("CargoA.dds");
-Texture gGroundTexture = Texture("GrassDiffuseSpecular.dds");
+Texture gGroundTexture = Texture("CobbleDiffuseSpecular.dds");
 Texture gLightTexture = Texture("Flare.jpg");
 
 
@@ -61,7 +61,7 @@ Mesh* gLightMesh;
 const int NUM_MODELS = 3;
 SceneModel* gModels[NUM_MODELS];
 
-SceneModel gCharacter = SceneModel(&gTrollTexture);
+SceneModel gTeapot = SceneModel(&gTeapotTexture);
 SceneModel gCrate = SceneModel(&gCrateTexture);
 SceneModel gGround = SceneModel(&gGroundTexture);
 
@@ -115,9 +115,9 @@ bool InitGeometry()
     // IMPORTANT NOTE: Will only keep the first object from the mesh - multipart objects will have parts missing - see later lab for more robust loader
     try 
     {
-        gCharacterMesh = new Mesh("Troll.x");
+        gCharacterMesh = new Mesh("Teapot.x");
         gCrateMesh     = new Mesh("CargoContainer.x");
-        gGroundMesh    = new Mesh("Hills.x");
+        gGroundMesh    = new Mesh("Ground.x");
         gLightMesh     = new Mesh("Light.x");
     }
     catch (std::runtime_error e)  // Constructors cannot return error messages so use exceptions to catch mesh errors (fairly standard approach this)
@@ -204,7 +204,7 @@ bool InitGeometry()
     // The LoadTexture function requires you to pass a ID3D11Resource* (e.g. &gCubeDiffuseMap), which manages the GPU memory for the
     // texture and also a ID3D11ShaderResourceView* (e.g. &gCubeDiffuseMapSRV), which allows us to use the texture in shaders
     // The function will fill in these pointers with usable data. The variables used here are globals found near the top of the file.
-    gTextures[0] = &gTrollTexture;
+    gTextures[0] = &gTeapotTexture;
     gTextures[1] = &gCrateTexture;
     gTextures[2] = &gGroundTexture;
     gTextures[3] = &gLightTexture;
@@ -241,8 +241,8 @@ bool InitScene()
 
     //// Set up scene ////
 
-    gCharacter.model = new Model(gCharacterMesh);
-    gModels[0] = &gCharacter;
+    gTeapot.model = new Model(gCharacterMesh);
+    gModels[0] = &gTeapot;
 
     gCrate.model     = new Model(gCrateMesh);
     gModels[1] = &gCrate;
@@ -251,9 +251,10 @@ bool InitScene()
     gModels[2] = &gGround;
 
 	// Initial positions
-	gCharacter.model->SetPosition({ 15, 0, 0 });
-    gCharacter.model->SetScale(6);
-    gCharacter.model->SetRotation({ 0, ToRadians(215.0f), 0 });
+	gTeapot.model->SetPosition({ 15, 0, 0 });
+    gTeapot.model->SetScale(1);
+    gTeapot.model->SetRotation({ 0, ToRadians(215.0f), 0 });
+
 	gCrate.model->SetPosition({ 40, 0, 30 });
 	gCrate.model->SetScale(6);
 	gCrate.model->SetRotation({ 0.0f, ToRadians(-20.0f), 0.0f });
@@ -275,14 +276,14 @@ bool InitScene()
     gSpotlights[0].colour = { 0.8f, 0.8f, 1.0f };
     gSpotlights[0].SetStrength(10);
     gSpotlights[0].model->SetPosition({ 30, 15, 0 });
-    gSpotlights[0].model->FaceTarget(gCharacter.model->Position());
+    gSpotlights[0].model->FaceTarget(gTeapot.model->Position());
 
 
     // Sun (fake directional light)
     gSpotlights[1].colour = { 1.0f, 0.8f, 0.2f };
     gSpotlights[1].SetStrength(100);
-    gSpotlights[1].model->SetPosition({ -25, 50, 120 });
-    gSpotlights[1].model->FaceTarget({ 0, 0, 0 });
+    gSpotlights[1].model->SetPosition({ -130, 85, 280 });
+    gSpotlights[1].model->FaceTarget({ 0, 10, 0 });
     gSpotlights[1].isSpot = false;
 
     // Flickering light
@@ -480,7 +481,7 @@ void RenderScene()
         shadowMaps[i] = gSpotlights[i].shadowMapSRV;
     }
 
-    gD3DContext->PSSetShaderResources(1, NUM_SPOTLIGHTS, shadowMaps);
+    gD3DContext->PSSetShaderResources(2, NUM_SPOTLIGHTS, shadowMaps);
     gD3DContext->PSSetSamplers(1, 1, &gPointSampler);
 
     // Render the scene for the main window
@@ -492,7 +493,7 @@ void RenderScene()
         shadowMaps[i] = nullptr;
     }
 
-    gD3DContext->PSSetShaderResources(1, NUM_SPOTLIGHTS, shadowMaps);
+    gD3DContext->PSSetShaderResources(2, NUM_SPOTLIGHTS, shadowMaps);
 
 
     //*****************************//
@@ -569,13 +570,13 @@ void UpdateScene(float frameTime)
     gPointlights[1].colour = colourProgress * rainbow[nextColour] + (1 - colourProgress) * rainbow[currentColour];
 
 	// Control sphere (will update its world matrix)
-	gCharacter.model->Control(frameTime, Key_I, Key_K, Key_J, Key_L, Key_U, Key_O, Key_Period, Key_Comma );
+	gTeapot.model->Control(frameTime, Key_I, Key_K, Key_J, Key_L, Key_U, Key_O, Key_Period, Key_Comma );
 
     // Orbit the light - a bit of a cheat with the static variable [ask the tutor if you want to know what this is]
 	static float rotate = 0.0f;
     static bool go = true;
-	gSpotlights[0].model->SetPosition( gCharacter.model->Position() + CVector3{ cos(rotate) * gLightOrbit, 10, sin(rotate) * gLightOrbit } );
-	gSpotlights[0].model->FaceTarget(gCharacter.model->Position());
+	gSpotlights[0].model->SetPosition( gTeapot.model->Position() + CVector3{ cos(rotate) * gLightOrbit, 10, sin(rotate) * gLightOrbit } );
+	gSpotlights[0].model->FaceTarget(gTeapot.model->Position());
     if (go)  rotate -= gLightOrbitSpeed * frameTime;
     if (KeyHit(Key_1))  go = !go;
 
