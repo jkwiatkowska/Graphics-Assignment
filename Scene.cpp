@@ -72,13 +72,13 @@ Camera* gCamera;
 const int NUM_SPOTLIGHTS = 1;
 const int MAX_SPOTLIGHTS = 25;
 
-const int NUM_POINTLIGHTS = 1;
+const int NUM_POINTLIGHTS = 2;
 const int MAX_POINTLIGHTS = 25;
 
 Spotlight gSpotlights[NUM_SPOTLIGHTS];
 Pointlight gPointlights[NUM_POINTLIGHTS];
 
-CVector3 gAmbientColour = { 0.2f, 0.2f, 0.3f }; // Background level of light (slightly bluish to match the far background, which is dark blue)
+CVector3 gAmbientColour = { 0.1f, 0.09f, 0.25f }; // Background level of light (slightly bluish to match the far background, which is dark blue)
 float    gSpecularPower = 256; // Specular power controls shininess - same for all models in this app
 
 ColourRGBA gBackgroundColor = { 0.2f, 0.2f, 0.3f, 1.0f };
@@ -233,6 +233,12 @@ bool InitGeometry()
 // Returns true on success
 bool InitScene()
 {
+    //// Set up camera ////
+
+    gCamera = new Camera();
+    gCamera->SetPosition({ 15, 30,-70 });
+    gCamera->SetRotation({ ToRadians(13), 0, 0 });
+
     //// Set up scene ////
 
     gCharacter.model = new Model(gCharacterMesh);
@@ -259,10 +265,10 @@ bool InitScene()
         gSpotlights[i].model = new Model(gLightMesh);
     }
 
+    // White spotlight
     gSpotlights[0].colour = { 0.8f, 0.8f, 1.0f };
-    gSpotlights[0].strength = 10;
-    gSpotlights[0].model->SetPosition({ 30, 20, 0 });
-    gSpotlights[0].model->SetScale(pow(gSpotlights[0].strength, 0.7f)); // Convert light strength into a nice value for the scale of the light - equation is ad-hoc.
+    gSpotlights[0].SetStrength(10);
+    gSpotlights[0].model->SetPosition({ 30, 15, 0 });
     gSpotlights[0].model->FaceTarget(gCharacter.model->Position());
 
     for (int i = 0; i < NUM_POINTLIGHTS; ++i)
@@ -271,17 +277,23 @@ bool InitScene()
         gPointlights[i].model = new Model(gLightMesh);
     }
 
-    gPointlights[0].colour = { 1.0f, 0.8f, 0.2f };
-    gPointlights[0].strength = 40;
-    gPointlights[0].model->SetPosition({ -20, 30, 20 });
-    gPointlights[0].model->SetScale(pow(gPointlights[0].strength, 0.7f));
-    gPointlights[0].model->FaceTarget({ 0, 0, 0 });
+    // Sun
+    //gPointlights[0].colour = { 1.0f, 0.8f, 0.2f };
+    //gPointlights[0].SetStrength(45);
+    //gPointlights[0].model->SetPosition({ -20, 38, 20 });
+    //gPointlights[0].model->FaceTarget({ 0, 0, 0 });
 
-    //// Set up camera ////
+    // Flickering light
+    gPointlights[0].colour = { 0.2f, 0.7f, 1.0f };
+    gPointlights[0].SetStrength(25);
+    gPointlights[0].model->SetPosition({ 20, 15, 12 });
+    gPointlights[0].model->FaceTarget(gCamera->Position());
 
-    gCamera = new Camera();
-    gCamera->SetPosition({ 15, 30,-70 });
-    gCamera->SetRotation({ ToRadians(13), 0, 0 });
+    // Colour changing light
+    gPointlights[1].colour = { 1.0f, 0.0f, 0.24f };
+    gPointlights[1].SetStrength(25);
+    gPointlights[1].model->SetPosition({ -25, 18, 10 });
+    gPointlights[1].model->FaceTarget(gCamera->Position());
 
     return true;
 }
@@ -459,7 +471,7 @@ void RenderScene()
     // In this app the diffuse map uses slot 0, the shadow maps use slots 1 onwards. If we were using other maps (e.g. normal map) then
     // we might arrange things differently
 
-    ID3D11ShaderResourceView* shadowMaps[MAX_SPOTLIGHTS + MAX_POINTLIGHTS * 6];
+    ID3D11ShaderResourceView* shadowMaps[NUM_SPOTLIGHTS];
     
     for (int i = 0; i < NUM_SPOTLIGHTS; i++)
     {
@@ -485,8 +497,7 @@ void RenderScene()
     // Temporary demonstration code for visualising the light's view of the scene
     //ColourRGBA white = {1,1,1};
     //gD3DContext->ClearRenderTargetView(gBackBufferRenderTarget, &white.r);
-    //gPointlights->model->SetRotation({ 0, 90, 0 });
-    //gPointlights[0].RenderDepthBufferFromLight(NUM_MODELS, gModels);
+    //gSpotlights[0].RenderDepthBufferFromLight(NUM_MODELS, gModels);
     //*****************************//
 
 
@@ -504,6 +515,57 @@ void RenderScene()
 // Update models and camera. frameTime is the time passed since the last frame
 void UpdateScene(float frameTime)
 {
+    // Flickering light
+    const float flickerSpeed = 16;
+    static const float strengthMax = gPointlights[0].strength;
+    static float currentStrength = gPointlights[0].strength;
+    static bool flickerDown = true;
+    if (flickerDown)
+    {
+        currentStrength -= frameTime * flickerSpeed;
+        if (currentStrength < 0)
+        {
+            currentStrength = 0;
+            flickerDown = false;
+        }
+    }
+    else
+    {
+        currentStrength += frameTime * flickerSpeed;
+        if (currentStrength > strengthMax)
+        {
+            currentStrength = strengthMax;
+            flickerDown = true;
+        }
+    }
+    gPointlights[0].SetStrength(currentStrength);
+
+    // Colour changing light
+    const CVector3 rainbow[7]
+    {
+        { 1.0f,  0.0f, 0.24f },
+        { 1.0f,  0.4f, 0.0f  },
+        { 0.9f,  1.0f, 0.0f  },
+        { 0.0f,  1.0f, 0.58f },
+        { 0.0f,  1.0f, 1.0f  },
+        { 0.0f,  0.5f, 1.0f  },
+        { 0.83f, 0.0f, 1.0f  }
+    };
+    const float colourSpeed = 1;
+    static int currentColour = 0;
+    static int nextColour = 1;
+    static float colourProgress = 0;
+
+    colourProgress += colourSpeed * frameTime;
+    if (colourProgress > 1)
+    {
+        colourProgress -= 1.0f;
+        currentColour = nextColour;
+        nextColour++;
+        if (nextColour > 6) nextColour = 0;
+    }
+    gPointlights[1].colour = colourProgress * rainbow[nextColour] + (1 - colourProgress) * rainbow[currentColour];
+
 	// Control sphere (will update its world matrix)
 	gCharacter.model->Control(frameTime, Key_I, Key_K, Key_J, Key_L, Key_U, Key_O, Key_Period, Key_Comma );
 

@@ -2,15 +2,11 @@
 
 float gSpotlightConeAngle = 90.0f; // Spot light cone angle (degrees), like the FOV (field-of-view) of the spot light
 
-const CVector3 rotation[6] =
+void Light::SetStrength(float newStrength)
 {
-    {0,   90,  0},
-    {0,   270, 0},
-    {90,  0,   0},
-    {270, 0,   0},
-    {0,   0,   0},
-    {0,   180, 0}
-};
+    strength = newStrength;
+    model->SetScale(pow(strength, 0.7f));
+}
 
 void Spotlight::SetBuffer()
 {

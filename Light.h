@@ -14,6 +14,8 @@ public:
     {
 
     }
+
+    void SetStrength(float newStrength);
 };
 
 // Spotlight class with shadows
@@ -56,4 +58,15 @@ public:
     PointlightBuffer buffer;
 
     void SetBuffer();
+};
+
+class Directionlight : public Light
+{
+public:
+    Directionlight()
+    {
+
+    }
+
+
 };
