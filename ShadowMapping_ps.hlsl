@@ -68,15 +68,39 @@ float4 main(LightingPixelShaderInput input) : SV_Target
 			// Get depth of this pixel if it were visible from the light (another advanced projection step)
 			float depthFromLight = lightProjection.z / lightProjection.w;// - DepthAdjust; //*** Adjustment so polygons don't shadow themselves
 
-			// Compare pixel depth from light with depth held in shadow map of the light. If shadow map depth is less than something is nearer
-			// to the light than this pixel - so the pixel gets no effect from this light
-			if (depthFromLight < ShadowMapLight[i].Sample(PointClamp, shadowMapUV).r)
+			// Smooth the shadow by sampling nearby points of the shadow map as well
+			float2 offset;
+			float strength = 0;
+			float maxStrength = 0;
+			for (int j = -3; j < 4; j++)
+			{
+				for (int k = -3; k < 4; k++)
+				{
+					offset.x = j * 0.0001f;
+					offset.y = k * 0.0001f;
+					if (depthFromLight < ShadowMapLight[i].Sample(PointClamp, shadowMapUV + offset).r)
+					{
+						strength += 0.0204081633f;
+					}
+				}
+			}
+
+			if (strength > 0)
 			{
 				float3 lightDist = length(gSpotlights[i].position - input.worldPosition);
-				diffuseLight += gSpotlights[i].colour * max(dot(input.worldNormal, lightDirection), 0) / lightDist; 
+				if (gSpotlights[i].isSpot == 0) lightDist = 150; // Set value for fake directional light
+
+				diffuseLight += (gSpotlights[i].colour * max(dot(input.worldNormal, lightDirection), 0) / lightDist) * strength; 
+
 				float3 halfway = normalize(lightDirection + cameraDirection);
-				specularLight += diffuseLight * pow(max(dot(input.worldNormal, halfway), 0), gSpecularPower); 
+				specularLight += diffuseLight * pow(max(dot(input.worldNormal, halfway), 0), gSpecularPower) * strength; 
 			}
+		}
+		else if (gSpotlights[i].isSpot == 0) // If not an actual spotlight light up the remaining area
+		{
+			diffuseLight += gSpotlights[i].colour * max(dot(input.worldNormal, lightDirection), 0) / 150;
+			float3 halfway = normalize(lightDirection + cameraDirection);
+			specularLight += diffuseLight * pow(max(dot(input.worldNormal, halfway), 0), gSpecularPower);
 		}
 	}
 	

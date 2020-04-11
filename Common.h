@@ -47,7 +47,7 @@ extern std::string gLastError;
 struct SpotlightBuffer
 {
     CVector3   position; // 3 floats: x, y z
-    float    padding;        // Pad above variable to float4 (HLSL requirement - copied in the the C++ version of this structure)
+    float    isSpot;       
     CVector3   colour;
     float    padding2;
     CVector3   facing;           // Spotlight facing direction (normal)

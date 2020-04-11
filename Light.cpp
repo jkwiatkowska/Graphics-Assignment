@@ -1,7 +1,5 @@
 #include "Light.h"
 
-float gSpotlightConeAngle = 90.0f; // Spot light cone angle (degrees), like the FOV (field-of-view) of the spot light
-
 void Light::SetStrength(float newStrength)
 {
     strength = newStrength;
@@ -11,6 +9,7 @@ void Light::SetStrength(float newStrength)
 void Spotlight::SetBuffer()
 {
     buffer.colour = colour * strength;
+    buffer.isSpot = isSpot;
     buffer.position = model->Position();
     buffer.facing = GetFacing();    // Additional lighting information for spotlights
     buffer.cosHalfAngle = cos(ToRadians(gSpotlightConeAngle / 2)); // --"--

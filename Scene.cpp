@@ -69,7 +69,7 @@ Camera* gCamera;
 
 
 // Lights
-const int NUM_SPOTLIGHTS = 1;
+const int NUM_SPOTLIGHTS = 2;
 const int MAX_SPOTLIGHTS = 25;
 
 const int NUM_POINTLIGHTS = 2;
@@ -78,7 +78,7 @@ const int MAX_POINTLIGHTS = 25;
 Spotlight gSpotlights[NUM_SPOTLIGHTS];
 Pointlight gPointlights[NUM_POINTLIGHTS];
 
-CVector3 gAmbientColour = { 0.1f, 0.09f, 0.25f }; // Background level of light (slightly bluish to match the far background, which is dark blue)
+CVector3 gAmbientColour = { 0.01f, 0.1f, 0.25f }; // Background level of light (slightly bluish to match the far background, which is dark blue)
 float    gSpecularPower = 256; // Specular power controls shininess - same for all models in this app
 
 ColourRGBA gBackgroundColor = { 0.2f, 0.2f, 0.3f, 1.0f };
@@ -265,23 +265,25 @@ bool InitScene()
         gSpotlights[i].model = new Model(gLightMesh);
     }
 
-    // White spotlight
-    gSpotlights[0].colour = { 0.8f, 0.8f, 1.0f };
-    gSpotlights[0].SetStrength(10);
-    gSpotlights[0].model->SetPosition({ 30, 15, 0 });
-    gSpotlights[0].model->FaceTarget(gCharacter.model->Position());
-
     for (int i = 0; i < NUM_POINTLIGHTS; ++i)
     {
         gPointlights[i].texture = &gLightTexture;
         gPointlights[i].model = new Model(gLightMesh);
     }
 
-    // Sun
-    //gPointlights[0].colour = { 1.0f, 0.8f, 0.2f };
-    //gPointlights[0].SetStrength(45);
-    //gPointlights[0].model->SetPosition({ -20, 38, 20 });
-    //gPointlights[0].model->FaceTarget({ 0, 0, 0 });
+    // Orbiting spotlight
+    gSpotlights[0].colour = { 0.8f, 0.8f, 1.0f };
+    gSpotlights[0].SetStrength(10);
+    gSpotlights[0].model->SetPosition({ 30, 15, 0 });
+    gSpotlights[0].model->FaceTarget(gCharacter.model->Position());
+
+
+    // Sun (fake directional light)
+    gSpotlights[1].colour = { 1.0f, 0.8f, 0.2f };
+    gSpotlights[1].SetStrength(100);
+    gSpotlights[1].model->SetPosition({ -25, 50, 120 });
+    gSpotlights[1].model->FaceTarget({ 0, 0, 0 });
+    gSpotlights[1].isSpot = false;
 
     // Flickering light
     gPointlights[0].colour = { 0.2f, 0.7f, 1.0f };

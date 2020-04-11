@@ -47,7 +47,7 @@ struct SimplePixelShaderInput
 struct Spotlight
 {
     float3   position; // 3 floats: x, y z
-    float    padding;        // Pad above variable to float4 (HLSL requirement - copied in the the C++ version of this structure)
+    float    isSpot;
     float3   colour;
     float    padding2;
     float3   facing;           // Spotlight facing direction (normal)
@@ -109,4 +109,4 @@ cbuffer PerModelConstants : register(b1) // The b1 gives this constant buffer th
 
     float3   gObjectColour;
     float    padding6;  // See notes on padding in structure above
-}
+} 

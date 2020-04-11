@@ -23,7 +23,8 @@ class Spotlight : public Light
 {
 public:
     SpotlightBuffer buffer;
-    int number = 0;
+    float gSpotlightConeAngle = 90.0f; // Spot light cone angle (degrees), like the FOV (field-of-view) of the spot light
+    bool isSpot = true;
 
     // The shadow texture - effectively a depth buffer of the scene **from the light's point of view**
     // Each frame it is rendered to, then the texture is used to help the per-pixel lighting shader identify pixels in shadow
@@ -58,15 +59,4 @@ public:
     PointlightBuffer buffer;
 
     void SetBuffer();
-};
-
-class Directionlight : public Light
-{
-public:
-    Directionlight()
-    {
-
-    }
-
-
 };
