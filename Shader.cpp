@@ -15,8 +15,8 @@
 //**** Update Shader.h if you add things here ****//
 
 // Vertex and pixel shader DirectX objects
-ID3D11VertexShader* gPixelLightingVertexShader = nullptr;
-ID3D11PixelShader*  gPixelLightingPixelShader  = nullptr;
+ID3D11VertexShader* gDefaultVertexShader = nullptr;
+ID3D11PixelShader*  gDefaultPixelShader  = nullptr;
 ID3D11VertexShader* gWiggleVertexShader = nullptr;
 ID3D11PixelShader*  gWigglePixelShader  = nullptr;
 ID3D11VertexShader* gBasicTransformVertexShader = nullptr; // Used before light model and depth-only pixel shader
@@ -33,15 +33,15 @@ bool LoadShaders()
     // Shaders must be added to the Visual Studio project to be compiled, they use the extension ".hlsl".
     // To load them for use, include them here without the extension. Use the correct function for each.
     // Ensure you release the shaders in the ShutdownDirect3D function below
-    gPixelLightingVertexShader  = LoadVertexShader("ShadowMapping_vs"); // Note how the shader files are named to show what type they are
-    gPixelLightingPixelShader   = LoadPixelShader ("ShadowMapping_ps");
+    gDefaultVertexShader  = LoadVertexShader("Default_vs"); // Note how the shader files are named to show what type they are
+    gDefaultPixelShader   = LoadPixelShader ("Default_ps");
     gWiggleVertexShader         = LoadVertexShader("Wiggle_vs"); 
     gWigglePixelShader          = LoadPixelShader ("Wiggle_ps");
     gBasicTransformVertexShader = LoadVertexShader("BasicTransform_vs");
     gLightModelPixelShader      = LoadPixelShader ("LightModel_ps");
     gDepthOnlyPixelShader       = LoadPixelShader ("DepthOnly_ps");
 
-    if (gPixelLightingVertexShader  == nullptr || gPixelLightingPixelShader == nullptr ||
+    if (gDefaultVertexShader  == nullptr || gDefaultPixelShader == nullptr ||
         gWiggleVertexShader         == nullptr || gWigglePixelShader        == nullptr ||
         gBasicTransformVertexShader == nullptr || gLightModelPixelShader    == nullptr || gDepthOnlyPixelShader == nullptr)
     {
@@ -58,8 +58,8 @@ void ReleaseShaders()
     if (gDepthOnlyPixelShader)        gDepthOnlyPixelShader->Release();
     if (gLightModelPixelShader)       gLightModelPixelShader->Release();
     if (gBasicTransformVertexShader)  gBasicTransformVertexShader->Release();
-    if (gPixelLightingPixelShader)    gPixelLightingPixelShader->Release();
-    if (gPixelLightingVertexShader)   gPixelLightingVertexShader->Release();
+    if (gDefaultPixelShader)    gDefaultPixelShader->Release();
+    if (gDefaultVertexShader)   gDefaultVertexShader->Release();
     if (gWigglePixelShader)           gWigglePixelShader->Release();
     if (gWiggleVertexShader)          gWiggleVertexShader->Release();
 }

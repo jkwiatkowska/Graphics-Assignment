@@ -405,8 +405,8 @@ void RenderSceneFromCamera(Camera* camera)
     //// Render lit models ////
 
     // Select which shaders to use next
-    gD3DContext->VSSetShader(gPixelLightingVertexShader, nullptr, 0);
-    gD3DContext->PSSetShader(gPixelLightingPixelShader,  nullptr, 0);
+    gD3DContext->VSSetShader(gDefaultVertexShader, nullptr, 0);
+    gD3DContext->PSSetShader(gDefaultPixelShader,  nullptr, 0);
     
     // States - no blending, normal depth buffer and culling
     gD3DContext->OMSetBlendState(gNoBlendingState, nullptr, 0xffffff);

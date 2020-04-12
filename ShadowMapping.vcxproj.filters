@@ -94,12 +94,6 @@
     <FxCompile Include="DepthOnly_ps.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="ShadowMapping_ps.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="ShadowMapping_vs.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="Wiggle_ps.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
@@ -107,6 +101,12 @@
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="TextureFade_ps.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Default_ps.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Default_vs.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>
