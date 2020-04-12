@@ -41,7 +41,7 @@ float4 main(LightingPixelShaderInput input) : SV_Target
 	tint.z = 0.45f;
 
 	// Combine lighting with texture colours
-	float3 finalColour = diffuseLight * (diffuseMaterialColour * 0.4f + tint) + specularLight * specularMaterialColour;
+	float3 finalColour = diffuseLight * (diffuseMaterialColour * 0.4f + tint) + specularLight * specularMaterialColour * 0.3f; // Decreased specular light to make the objects less shiny
 
 	return float4(finalColour, 1.0f);
 }
