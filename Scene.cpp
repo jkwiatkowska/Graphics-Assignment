@@ -35,7 +35,7 @@
 const int NUM_TEXTURES = 4;
 Texture* gTextures[NUM_TEXTURES];
 
-Texture gTeapotTexture = Texture("StoneDiffuseSpecular.dds");
+Texture gStoneTexture = Texture("StoneDiffuseSpecular.dds");
 Texture gCrateTexture = Texture("CargoA.dds");
 Texture gGroundTexture = Texture("CobbleDiffuseSpecular.dds");
 Texture gLightTexture = Texture("Flare.jpg");
@@ -57,19 +57,22 @@ Mesh* gCharacterMesh;
 Mesh* gCrateMesh;
 Mesh* gGroundMesh;
 Mesh* gLightMesh;
+Mesh* gSphereMesh;
 
 const int NUM_PIXEL_MODELS = 3;
 SceneModel* gPixelModels[NUM_PIXEL_MODELS];
 
-const int NUM_WIGGLE_MODELS = 0;
-//SceneModel* gPixelModels[NUM_WIGGLE_MODELS];
+const int NUM_WIGGLE_MODELS = 1;
+SceneModel* gWiggleModels[NUM_WIGGLE_MODELS];
 
 const int NUM_MODELS = NUM_PIXEL_MODELS + NUM_WIGGLE_MODELS;
 SceneModel* gModels[NUM_MODELS];
 
-SceneModel gTeapot = SceneModel(&gTeapotTexture);
+SceneModel gTeapot = SceneModel(&gStoneTexture);
 SceneModel gCrate = SceneModel(&gCrateTexture);
 SceneModel gGround = SceneModel(&gGroundTexture);
+
+SceneModel gWiggleSphere = SceneModel(&gStoneTexture);
 
 Camera* gCamera;
 
@@ -128,6 +131,7 @@ bool InitGeometry()
         gCrateMesh     = new Mesh("CargoContainer.x");
         gGroundMesh    = new Mesh("Ground.x");
         gLightMesh     = new Mesh("Light.x");
+        gSphereMesh    = new Mesh("Sphere.x");
     }
     catch (std::runtime_error e)  // Constructors cannot return error messages so use exceptions to catch mesh errors (fairly standard approach this)
     {
@@ -213,7 +217,7 @@ bool InitGeometry()
     // The LoadTexture function requires you to pass a ID3D11Resource* (e.g. &gCubeDiffuseMap), which manages the GPU memory for the
     // texture and also a ID3D11ShaderResourceView* (e.g. &gCubeDiffuseMapSRV), which allows us to use the texture in shaders
     // The function will fill in these pointers with usable data. The variables used here are globals found near the top of the file.
-    gTextures[0] = &gTeapotTexture;
+    gTextures[0] = &gStoneTexture;
     gTextures[1] = &gCrateTexture;
     gTextures[2] = &gGroundTexture;
     gTextures[3] = &gLightTexture;
@@ -251,13 +255,28 @@ bool InitScene()
     //// Set up scene ////
 
     gTeapot.model = new Model(gCharacterMesh);
-    gModels[0] = &gTeapot;
+    gPixelModels[0] = &gTeapot;
 
     gCrate.model     = new Model(gCrateMesh);
-    gModels[1] = &gCrate;
+    gPixelModels[1] = &gCrate;
     
     gGround.model    = new Model(gGroundMesh);
-    gModels[2] = &gGround;
+    gPixelModels[2] = &gGround;
+
+    gWiggleSphere.model = new Model(gSphereMesh);
+    gWiggleModels[0] = &gWiggleSphere;
+
+    int modelIndex = 0;
+    for (int i = 0; i < NUM_PIXEL_MODELS; i++)
+    {
+        gModels[modelIndex] = gPixelModels[i];
+        modelIndex++;
+    }
+    for (int i = 0; i < NUM_WIGGLE_MODELS; i++)
+    {
+        gModels[modelIndex] = gWiggleModels[i];
+        modelIndex++;
+    }
 
 	// Initial positions
 	gTeapot.model->SetPosition({ 15, 0, 0 });
@@ -267,6 +286,9 @@ bool InitScene()
 	gCrate.model->SetPosition({ 40, 0, 30 });
 	gCrate.model->SetScale(6);
 	gCrate.model->SetRotation({ 0.0f, ToRadians(-20.0f), 0.0f });
+
+    gWiggleSphere.model->SetPosition({ 0, 6, -5 });
+    gWiggleSphere.model->SetScale(0.3f);
 
     // Light set-up
     int lightIndex = 0;
@@ -355,6 +377,7 @@ void ReleaseResources()
     delete gGroundMesh;    gGroundMesh    = nullptr;
     delete gCrateMesh;     gCrateMesh     = nullptr;
     delete gCharacterMesh; gCharacterMesh = nullptr;
+    delete gSphereMesh;    gSphereMesh    = nullptr;
 }
 
 
@@ -397,8 +420,16 @@ void RenderSceneFromCamera(Camera* camera)
     // the Mesh render function, which will set up vertex & index buffer before finally calling Draw on the GPU
     for (int i = 0; i < NUM_PIXEL_MODELS; i++)
     {
-        gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
-        gModels[i]->model->Render();
+        gD3DContext->PSSetShaderResources(0, 1, &gPixelModels[i]->texture->diffuseSpecularMapSRV);
+        gPixelModels[i]->model->Render();
+    }
+
+    gD3DContext->VSSetShader(gWiggleVertexShader, nullptr, 0);
+    gD3DContext->PSSetShader(gWigglePixelShader, nullptr, 0);
+    for (int i = 0; i < NUM_WIGGLE_MODELS; i++)
+    {
+        gD3DContext->PSSetShaderResources(0, 1, &gWiggleModels[i]->texture->diffuseSpecularMapSRV);
+        gWiggleModels[i]->model->Render();
     }
 
     //// Render lights ////
@@ -584,6 +615,11 @@ void UpdateScene(float frameTime)
         if (nextColour > 6) nextColour = 0;
     }
     gPointlights[1].colour = colourProgress * rainbow[nextColour] + (1 - colourProgress) * rainbow[currentColour];
+
+    // Wiggle effect
+    static float wiggle = 0;
+    wiggle += frameTime;
+    gPerFrameConstants.wiggle = wiggle;
 
 	// Control sphere (will update its world matrix)
 	gTeapot.model->Control(frameTime, Key_I, Key_K, Key_J, Key_L, Key_U, Key_O, Key_Period, Key_Comma );

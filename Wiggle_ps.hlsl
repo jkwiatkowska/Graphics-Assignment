@@ -27,6 +27,9 @@ float4 main(LightingPixelShaderInput input) : SV_Target
 	float3 specularLight;
 	CalculateLighting(ShadowMap, input.worldPosition, input.worldNormal, PointClamp, diffuseLight, specularLight);
 
+	// Wiggle effect
+	input.uv.y += gWiggle;
+
 	////////////////////
 	// Combine lighting and textures
 
@@ -35,8 +38,12 @@ float4 main(LightingPixelShaderInput input) : SV_Target
 	float3 diffuseMaterialColour = textureColour.rgb; // Diffuse material colour in texture RGB (base colour of model)
 	float specularMaterialColour = textureColour.a;   // Specular material colour in texture A (shininess of the surface)
 
+	float3 tint = 0;
+	tint.x = 0.6f;
+	tint.z = 0.45f;
+
 	// Combine lighting with texture colours
-	float3 finalColour = diffuseLight * diffuseMaterialColour + specularLight * specularMaterialColour;
+	float3 finalColour = diffuseLight * (diffuseMaterialColour * 0.4f + tint) + specularLight * specularMaterialColour;
 
 	return float4(finalColour, 1.0f); // Always use 1.0f for output alpha - no alpha blending in this lab
 }
