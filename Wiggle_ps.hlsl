@@ -27,8 +27,8 @@ float4 main(LightingPixelShaderInput input) : SV_Target
 	float3 specularLight;
 	CalculateLighting(ShadowMap, input.worldPosition, input.worldNormal, PointClamp, diffuseLight, specularLight);
 
-	// Wiggle effect
-	input.uv.y += gWiggle;
+	// Scrolling effect
+	//input.uv.y += gWiggle;
 
 	////////////////////
 	// Combine lighting and textures
