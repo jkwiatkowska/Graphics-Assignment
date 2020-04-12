@@ -41,11 +41,11 @@ public:
 
     CVector3 GetFacing();
 
-    void RenderFromLightPOV(int numModels, SceneModel* models[]);
+    void RenderFromLightPOV(int numDefModels, SceneModel* defModels[], int numWigModels, SceneModel* wigModels[]);
 
     CMatrix4x4 CalculateLightViewMatrix();
     CMatrix4x4 CalculateLightProjectionMatrix();
-    void RenderDepthBufferFromLight(int numModels, SceneModel* models[]);
+    void RenderDepthBufferFromLight(int numDefModels, SceneModel* defModels[], int numWigModels, SceneModel* wigModels[]);
 };
 
 class Pointlight : public Light

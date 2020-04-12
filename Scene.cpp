@@ -59,13 +59,13 @@ Mesh* gGroundMesh;
 Mesh* gLightMesh;
 Mesh* gSphereMesh;
 
-const int NUM_PIXEL_MODELS = 3;
-SceneModel* gPixelModels[NUM_PIXEL_MODELS];
+const int NUM_NORMAL_MODELS = 3;
+SceneModel* gNormalModels[NUM_NORMAL_MODELS];
 
 const int NUM_WIGGLE_MODELS = 1;
 SceneModel* gWiggleModels[NUM_WIGGLE_MODELS];
 
-const int NUM_MODELS = NUM_PIXEL_MODELS + NUM_WIGGLE_MODELS;
+const int NUM_MODELS = NUM_NORMAL_MODELS + NUM_WIGGLE_MODELS;
 SceneModel* gModels[NUM_MODELS];
 
 SceneModel gTeapot = SceneModel(&gStoneTexture);
@@ -255,21 +255,21 @@ bool InitScene()
     //// Set up scene ////
 
     gTeapot.model = new Model(gCharacterMesh);
-    gPixelModels[0] = &gTeapot;
+    gNormalModels[0] = &gTeapot;
 
     gCrate.model     = new Model(gCrateMesh);
-    gPixelModels[1] = &gCrate;
+    gNormalModels[1] = &gCrate;
     
     gGround.model    = new Model(gGroundMesh);
-    gPixelModels[2] = &gGround;
+    gNormalModels[2] = &gGround;
 
     gWiggleSphere.model = new Model(gSphereMesh);
     gWiggleModels[0] = &gWiggleSphere;
 
     int modelIndex = 0;
-    for (int i = 0; i < NUM_PIXEL_MODELS; i++)
+    for (int i = 0; i < NUM_NORMAL_MODELS; i++)
     {
-        gModels[modelIndex] = gPixelModels[i];
+        gModels[modelIndex] = gNormalModels[i];
         modelIndex++;
     }
     for (int i = 0; i < NUM_WIGGLE_MODELS; i++)
@@ -418,10 +418,10 @@ void RenderSceneFromCamera(Camera* camera)
 
     // Render model - it will update the model's world matrix and send it to the GPU in a constant buffer, then it will call
     // the Mesh render function, which will set up vertex & index buffer before finally calling Draw on the GPU
-    for (int i = 0; i < NUM_PIXEL_MODELS; i++)
+    for (int i = 0; i < NUM_NORMAL_MODELS; i++)
     {
-        gD3DContext->PSSetShaderResources(0, 1, &gPixelModels[i]->texture->diffuseSpecularMapSRV);
-        gPixelModels[i]->model->Render();
+        gD3DContext->PSSetShaderResources(0, 1, &gNormalModels[i]->texture->diffuseSpecularMapSRV);
+        gNormalModels[i]->model->Render();
     }
 
     gD3DContext->VSSetShader(gWiggleVertexShader, nullptr, 0);
@@ -493,7 +493,7 @@ void RenderScene()
     
     for (int i = 0; i < NUM_SPOTLIGHTS; i++)
     {
-        gSpotlights[i].RenderFromLightPOV(NUM_MODELS, gModels);
+        gSpotlights[i].RenderFromLightPOV(NUM_NORMAL_MODELS, gNormalModels, NUM_WIGGLE_MODELS, gWiggleModels);
     }
 
     //// Main scene rendering ////

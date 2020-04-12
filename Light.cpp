@@ -35,7 +35,7 @@ CVector3 Spotlight::GetFacing()
 }
 
 // Render the scene from the given light's point of view. Only renders depth buffer
-void Spotlight::RenderDepthBufferFromLight(int numModels, SceneModel* models[])
+void Spotlight::RenderDepthBufferFromLight(int numDefModels, SceneModel* defModels[], int numWigModels, SceneModel* wigModels[])
 {
     // Get camera-like matrices from the spotlight, set in the constant buffer and send over to GPU
     gPerFrameConstants.viewMatrix = CalculateLightViewMatrix();
@@ -60,13 +60,18 @@ void Spotlight::RenderDepthBufferFromLight(int numModels, SceneModel* models[])
     gD3DContext->RSSetState(gCullFrontState);
 
     // Render models - no state changes required between each object in this situation (no textures used in this step)
-    for (int i = 0; i < numModels; i++)
+    for (int i = 0; i < numDefModels; i++)
     {
-        models[i]->model->Render();
+        defModels[i]->model->Render();
+    }
+    gD3DContext->VSSetShader(gWiggleVertexShader, nullptr, 0);
+    for (int i = 0; i < numWigModels; i++)
+    {
+        wigModels[i]->model->Render();
     }
 }
 
-void Spotlight::RenderFromLightPOV(int numModels, SceneModel* models[])
+void Spotlight::RenderFromLightPOV(int numDefModels, SceneModel* defModels[], int numWigModels, SceneModel* wigModels[])
 {
     //// Render from light's point of view ////
 
@@ -86,7 +91,7 @@ void Spotlight::RenderFromLightPOV(int numModels, SceneModel* models[])
     gD3DContext->ClearDepthStencilView(shadowMapDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
     // Render the scene from the point of view of light (only depth values written)
-    RenderDepthBufferFromLight(numModels, models);
+    RenderDepthBufferFromLight(numDefModels, defModels, numWigModels, wigModels);
 }
 
 void Pointlight::SetBuffer()
