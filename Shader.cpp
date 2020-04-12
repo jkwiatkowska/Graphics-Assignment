@@ -17,6 +17,8 @@
 // Vertex and pixel shader DirectX objects
 ID3D11VertexShader* gPixelLightingVertexShader = nullptr;
 ID3D11PixelShader*  gPixelLightingPixelShader  = nullptr;
+ID3D11VertexShader* gWiggleVertexShader = nullptr;
+ID3D11PixelShader*  gWigglePixelShader  = nullptr;
 ID3D11VertexShader* gBasicTransformVertexShader = nullptr; // Used before light model and depth-only pixel shader
 ID3D11PixelShader*  gLightModelPixelShader  = nullptr;
 ID3D11PixelShader*  gDepthOnlyPixelShader  = nullptr;
@@ -33,11 +35,14 @@ bool LoadShaders()
     // Ensure you release the shaders in the ShutdownDirect3D function below
     gPixelLightingVertexShader  = LoadVertexShader("ShadowMapping_vs"); // Note how the shader files are named to show what type they are
     gPixelLightingPixelShader   = LoadPixelShader ("ShadowMapping_ps");
+    gWiggleVertexShader         = LoadVertexShader("Wiggle_vs"); 
+    gWigglePixelShader          = LoadPixelShader ("Wiggle_ps");
     gBasicTransformVertexShader = LoadVertexShader("BasicTransform_vs");
     gLightModelPixelShader      = LoadPixelShader ("LightModel_ps");
     gDepthOnlyPixelShader       = LoadPixelShader ("DepthOnly_ps");
 
     if (gPixelLightingVertexShader  == nullptr || gPixelLightingPixelShader == nullptr ||
+        gWiggleVertexShader         == nullptr || gWigglePixelShader        == nullptr ||
         gBasicTransformVertexShader == nullptr || gLightModelPixelShader    == nullptr || gDepthOnlyPixelShader == nullptr)
     {
         gLastError = "Error loading shaders";
@@ -55,6 +60,8 @@ void ReleaseShaders()
     if (gBasicTransformVertexShader)  gBasicTransformVertexShader->Release();
     if (gPixelLightingPixelShader)    gPixelLightingPixelShader->Release();
     if (gPixelLightingVertexShader)   gPixelLightingVertexShader->Release();
+    if (gWigglePixelShader)           gWigglePixelShader->Release();
+    if (gWiggleVertexShader)          gWiggleVertexShader->Release();
 }
 
 
