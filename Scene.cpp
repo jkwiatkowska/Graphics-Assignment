@@ -528,7 +528,7 @@ void RenderScene()
         shadowMaps[i] = gSpotlights[i].shadowMapSRV;
     }
 
-    gD3DContext->PSSetShaderResources(2, NUM_SPOTLIGHTS, shadowMaps);
+    gD3DContext->PSSetShaderResources(10, NUM_SPOTLIGHTS, shadowMaps);
     gD3DContext->PSSetSamplers(1, 1, &gPointSampler);
 
     // Render the scene for the main window
@@ -540,7 +540,7 @@ void RenderScene()
         shadowMaps[i] = nullptr;
     }
 
-    gD3DContext->PSSetShaderResources(2, NUM_SPOTLIGHTS, shadowMaps);
+    gD3DContext->PSSetShaderResources(10, NUM_SPOTLIGHTS, shadowMaps);
 
 
     //*****************************//

@@ -3,12 +3,13 @@
 //--------------------------------------------------------------------------------------
 // Textures (texture maps)
 //--------------------------------------------------------------------------------------
-Texture2D DiffuseSpecularMap : register(t0); // Textures here can contain a diffuse map (main colour) in their rgb channels and a specular map (shininess) in the a channel
-SamplerState TexSampler      : register(s0); // A sampler is a filter for a texture like bilinear, trilinear or anisotropic - this is the sampler used for the texture above
+Texture2D DiffuseSpecularMap : register(t0);
+Texture2D DiffuseSpecularMap2 : register(t4);
 
-SamplerState PointClamp   : register(s1); // No filtering for shadow maps (you might think you could use trilinear or similar, but it will filter light depths not the shadows cast...)
+Texture2D ShadowMap[15] : register(t10);
 
-Texture2D ShadowMap[15] : register(t2);
+SamplerState TexSampler      : register(s0);
+SamplerState PointClamp   : register(s1);
 
 //--------------------------------------------------------------------------------------
 // Shader code

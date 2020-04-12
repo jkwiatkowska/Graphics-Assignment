@@ -24,16 +24,18 @@ class SceneModel
 {
 public:
 	Model* model = nullptr;
-	Texture* texture;
+	Texture* texture = nullptr;
+	Texture* texture2 = nullptr;
 
 	SceneModel()
 	{
 
 	}
 
-	SceneModel(Texture* modelTexture)
+	SceneModel(Texture* modelTexture, Texture* modelTexture2 = nullptr)
 	{
 		texture = modelTexture;
+		texture2 = modelTexture2;
 	}
 
 	~SceneModel()
