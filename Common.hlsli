@@ -93,7 +93,7 @@ cbuffer PerFrameConstants : register(b0) // The b0 gives this constant buffer th
     float    gSpecularPower;
 
     float3   gCameraPosition;
-    float    padding5;
+    float    gWiggle;
 }
 // Note constant buffers are not structs: we don't use the name of the constant buffer, these are really just a collection of global variables (hence the 'g')
 
@@ -117,13 +117,13 @@ float SmoothSample(Texture2D map, SamplerState PointClamp, float2 uv, float comp
     float maxStrength = 0;
     [unroll(5)] for (int j = -2; j < 3; j++)
     {
-        [unroll(5)] for (int k = -2; k < 3; k++)
+        [unroll(9)] for (int k = -3; k < 4; k++)
         {
             offset.x = j * 0.00012f;
-            offset.y = k * 0.00012f;
+            offset.y = k * 0.00008f;
             if (compare < map.Sample(PointClamp, uv + offset).r)
             {
-                strength += 0.04f;
+                strength += 0.0222222222f;
             }
         }
     }
