@@ -7,6 +7,14 @@
 #define _SCENE_H_INCLUDED_
 
 class SceneModel;
+
+enum ShaderType
+{
+	Default,
+	Wiggle,
+	TextureFade
+};
+
 //--------------------------------------------------------------------------------------
 // Scene Geometry and Layout
 //--------------------------------------------------------------------------------------
@@ -21,7 +29,6 @@ bool InitScene();
 
 // Release the geometry resources created above
 void ReleaseResources();
-
 
 //--------------------------------------------------------------------------------------
 // Scene Render and Update

@@ -24,9 +24,14 @@ float4 main(LightingPixelShaderInput input) : SV_Target
 	float3 specularLight;
 	CalculateLighting(ShadowMap, input.worldPosition, input.worldNormal, PointClamp, diffuseLight, specularLight);
 
+	// Get intensity of the first texture
+	float intensity = sin(gWiggle) / 2 + 0.5f;
+
 	////////////////////
 	// Combine lighting and textures
-	float4 textureColour = DiffuseSpecularMap.Sample(TexSampler, input.uv);
+	float4 texture1Colour = DiffuseSpecularMap.Sample(TexSampler, input.uv);
+	float4 texture2Colour = DiffuseSpecularMap2.Sample(TexSampler, input.uv);
+	float4 textureColour  = texture1Colour * intensity + texture2Colour * (1 - intensity);
 	float3 diffuseMaterialColour = textureColour.rgb;
 	float specularMaterialColour = textureColour.a;
 

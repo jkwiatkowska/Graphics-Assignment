@@ -32,14 +32,19 @@
 //--------------------------------------------------------------------------------------
 
 // DirectX objects controlling textures used in this lab
-const int NUM_TEXTURES = 4;
+const int NUM_TEXTURES = 10;
 Texture* gTextures[NUM_TEXTURES];
 
-Texture gStoneTexture = Texture("StoneDiffuseSpecular.dds");
-Texture gCrateTexture = Texture("CargoA.dds");
+Texture gStoneTexture  = Texture("StoneDiffuseSpecular.dds");
+Texture gCrateTexture  = Texture("CargoA.dds");
 Texture gGroundTexture = Texture("CobbleDiffuseSpecular.dds");
-Texture gLightTexture = Texture("Flare.jpg");
-
+Texture gLightTexture  = Texture("Flare.jpg");
+Texture gWoodTexture   = Texture("WoodDiffuseSpecular.dds");
+Texture gWallTexture   = Texture("WallDiffuseSpecular.dds");
+Texture gTechTexture   = Texture("TechDiffuseSpecular.dds");
+Texture gPatternTexture= Texture("PatternDiffuseSpecular.dds");
+Texture gMetalTexture  = Texture("MetalDiffuseSpecular.dds");
+Texture gGrassTexture  = Texture("GrassDiffuseSpecular.dds");
 
 //--------------------------------------------------------------------------------------
 // Scene Data
@@ -58,14 +63,9 @@ Mesh* gCrateMesh;
 Mesh* gGroundMesh;
 Mesh* gLightMesh;
 Mesh* gSphereMesh;
+Mesh* gCubeMesh;
 
-const int NUM_NORMAL_MODELS = 3;
-SceneModel* gNormalModels[NUM_NORMAL_MODELS];
-
-const int NUM_WIGGLE_MODELS = 1;
-SceneModel* gWiggleModels[NUM_WIGGLE_MODELS];
-
-const int NUM_MODELS = NUM_NORMAL_MODELS + NUM_WIGGLE_MODELS;
+const int NUM_MODELS = 18;
 SceneModel* gModels[NUM_MODELS];
 
 SceneModel gTeapot = SceneModel(&gStoneTexture);
@@ -73,6 +73,9 @@ SceneModel gCrate = SceneModel(&gCrateTexture);
 SceneModel gGround = SceneModel(&gGroundTexture);
 
 SceneModel gWiggleSphere = SceneModel(&gStoneTexture);
+
+const int NUM_BRICKS = 14;
+SceneModel gBricks[NUM_BRICKS];
 
 Camera* gCamera;
 
@@ -132,6 +135,7 @@ bool InitGeometry()
         gGroundMesh    = new Mesh("Ground.x");
         gLightMesh     = new Mesh("Light.x");
         gSphereMesh    = new Mesh("Sphere.x");
+        gCubeMesh      = new Mesh("Cube.x");
     }
     catch (std::runtime_error e)  // Constructors cannot return error messages so use exceptions to catch mesh errors (fairly standard approach this)
     {
@@ -221,6 +225,12 @@ bool InitGeometry()
     gTextures[1] = &gCrateTexture;
     gTextures[2] = &gGroundTexture;
     gTextures[3] = &gLightTexture;
+    gTextures[4] = &gWoodTexture;
+    gTextures[5] = &gWallTexture;
+    gTextures[6] = &gTechTexture;
+    gTextures[7] = &gPatternTexture;
+    gTextures[8] = &gMetalTexture;
+    gTextures[9] = &gGrassTexture;
     
     for (int i = 0; i < NUM_TEXTURES; i++)
     {
@@ -254,41 +264,63 @@ bool InitScene()
 
     //// Set up scene ////
 
+    // Teapot
     gTeapot.model = new Model(gCharacterMesh);
-    gNormalModels[0] = &gTeapot;
-
-    gCrate.model     = new Model(gCrateMesh);
-    gNormalModels[1] = &gCrate;
-    
-    gGround.model    = new Model(gGroundMesh);
-    gNormalModels[2] = &gGround;
-
-    gWiggleSphere.model = new Model(gSphereMesh);
-    gWiggleModels[0] = &gWiggleSphere;
-
-    int modelIndex = 0;
-    for (int i = 0; i < NUM_NORMAL_MODELS; i++)
-    {
-        gModels[modelIndex] = gNormalModels[i];
-        modelIndex++;
-    }
-    for (int i = 0; i < NUM_WIGGLE_MODELS; i++)
-    {
-        gModels[modelIndex] = gWiggleModels[i];
-        modelIndex++;
-    }
-
-	// Initial positions
-	gTeapot.model->SetPosition({ 15, 0, 0 });
+    gTeapot.model->SetPosition({ 15, 0, 0 });
     gTeapot.model->SetScale(1);
     gTeapot.model->SetRotation({ 0, ToRadians(215.0f), 0 });
+    
+    gModels[0] = &gTeapot;
 
-	gCrate.model->SetPosition({ 40, 0, 30 });
-	gCrate.model->SetScale(6);
-	gCrate.model->SetRotation({ 0.0f, ToRadians(-20.0f), 0.0f });
+    // Crate
+    gCrate.model     = new Model(gCrateMesh);
+    gCrate.model->SetPosition({ 40, 0, 30 });
+    gCrate.model->SetScale(6);
+    gCrate.model->SetRotation({ 0.0f, ToRadians(-20.0f), 0.0f });
+    
+    gModels[1] = &gCrate;
+    
+    // Ground
+    gGround.model    = new Model(gGroundMesh);
+    gGround.model->SetScale(0.8f);
+    gModels[2] = &gGround;
 
+    // Wiggle sphere
+    gWiggleSphere.model = new Model(gSphereMesh);
+    gWiggleSphere.shader = Wiggle;
     gWiggleSphere.model->SetPosition({ 0, 6, -5 });
     gWiggleSphere.model->SetScale(0.3f);
+    
+    gModels[3] = &gWiggleSphere;
+
+    // Bricks
+    const int brickRow = 5;
+    const int fadeBrick[NUM_BRICKS] = 
+    { 
+        false, false, true, false, false,
+        false, true, false, false, true,
+        false, true, false, false
+    };
+    for (int i = 0; i < NUM_BRICKS; i++)
+    {
+        gBricks[i] = SceneModel(&gWallTexture, &gPatternTexture);
+        gBricks[i].model = new Model(gCubeMesh);
+        if (fadeBrick[i]) gBricks[i].shader = TextureFade;
+
+        int x = i % brickRow;
+        int y = (i - x) / brickRow;
+        if (y % 2 == 0)
+        {
+            x *= 10;
+            x += 5;
+        }
+        else x *= 10;
+        y *= 10;
+
+        gBricks[i].model->SetPosition({ 5 + (float)x, 5 + (float)y, 130 });
+
+        gModels[4 + i] = &gBricks[i];
+    }
 
     // Light set-up
     int lightIndex = 0;
@@ -319,9 +351,9 @@ bool InitScene()
 
     // Sun (fake directional light)
     gSpotlights[1].colour = { 1.0f, 0.8f, 0.2f };
-    gSpotlights[1].SetStrength(100);
-    gSpotlights[1].model->SetPosition({ -130, 80, 285 });
-    gSpotlights[1].model->FaceTarget({ 0, 10, 0 });
+    gSpotlights[1].SetStrength(80);
+    gSpotlights[1].model->SetPosition({ -200, 360, 495 });
+    gSpotlights[1].model->FaceTarget({ 0, 0, -100 });
     gSpotlights[1].isSpot = false;
 
     // Flickering light
@@ -418,18 +450,35 @@ void RenderSceneFromCamera(Camera* camera)
 
     // Render model - it will update the model's world matrix and send it to the GPU in a constant buffer, then it will call
     // the Mesh render function, which will set up vertex & index buffer before finally calling Draw on the GPU
-    for (int i = 0; i < NUM_NORMAL_MODELS; i++)
+    for (int i = 0; i < NUM_MODELS; i++)
     {
-        gD3DContext->PSSetShaderResources(0, 1, &gNormalModels[i]->texture->diffuseSpecularMapSRV);
-        gNormalModels[i]->model->Render();
+        if (gModels[i]->shader == Default)
+        {
+            gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
+            gModels[i]->model->Render();
+        }
+    }
+
+    gD3DContext->PSSetShader(gTexFadePixelShader, nullptr, 0);
+    for (int i = 0; i < NUM_MODELS; i++)
+    {
+        if (gModels[i]->shader == TextureFade)
+        {
+            gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
+            gD3DContext->PSSetShaderResources(4, 1, &gModels[i]->texture2->diffuseSpecularMapSRV);
+            gModels[i]->model->Render();
+        }
     }
 
     gD3DContext->VSSetShader(gWiggleVertexShader, nullptr, 0);
     gD3DContext->PSSetShader(gWigglePixelShader, nullptr, 0);
-    for (int i = 0; i < NUM_WIGGLE_MODELS; i++)
+    for (int i = 0; i < NUM_MODELS; i++)
     {
-        gD3DContext->PSSetShaderResources(0, 1, &gWiggleModels[i]->texture->diffuseSpecularMapSRV);
-        gWiggleModels[i]->model->Render();
+        if (gModels[i]->shader == Wiggle)
+        {
+            gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
+            gModels[i]->model->Render();
+        }
     }
 
     //// Render lights ////
@@ -493,7 +542,7 @@ void RenderScene()
     
     for (int i = 0; i < NUM_SPOTLIGHTS; i++)
     {
-        gSpotlights[i].RenderFromLightPOV(NUM_NORMAL_MODELS, gNormalModels, NUM_WIGGLE_MODELS, gWiggleModels);
+        gSpotlights[i].RenderFromLightPOV(NUM_MODELS, gModels);
     }
 
     //// Main scene rendering ////
@@ -541,7 +590,6 @@ void RenderScene()
     }
 
     gD3DContext->PSSetShaderResources(10, NUM_SPOTLIGHTS, shadowMaps);
-
 
     //*****************************//
     // Temporary demonstration code for visualising the light's view of the scene

@@ -161,8 +161,9 @@ void CalculateLighting(Texture2D ShadowMap[15], float3 worldPosition, float3 wor
 
             if (strength > 0)
             {
-                float3 lightDist = length(gSpotlights[i].position - worldPosition);
+                float3 lightDist; 
                 if (gSpotlights[i].isSpot == 0) lightDist = 150; // Set value for fake directional light
+                else lightDist = length(gSpotlights[i].position - worldPosition);
 
                 diffuseLight += (gSpotlights[i].colour * max(dot(worldNormal, lightDirection), 0) / lightDist) * strength;
 
@@ -172,7 +173,8 @@ void CalculateLighting(Texture2D ShadowMap[15], float3 worldPosition, float3 wor
         }
         else if (gSpotlights[i].isSpot == 0) // If not an actual spotlight light up the remaining area
         {
-            diffuseLight += gSpotlights[i].colour * max(dot(worldNormal, lightDirection), 0) / 150;
+            diffuseLight += (gSpotlights[i].colour * max(dot(worldNormal, lightDirection), 0) / 200);
+
             float3 halfway = normalize(lightDirection + cameraDirection);
             specularLight += diffuseLight * pow(max(dot(worldNormal, halfway), 0), gSpecularPower);
         }
