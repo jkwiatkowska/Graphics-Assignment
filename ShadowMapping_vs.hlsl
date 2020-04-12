@@ -1,19 +1,9 @@
-//--------------------------------------------------------------------------------------
-// Per-Pixel Lighting Vertex Shader
-//--------------------------------------------------------------------------------------
-// Performs usual matrix transformations, but also sends world normal and position of vertex
-// on to the pixel shader so lighting can be calculated per pixel.
-
 #include "Common.hlsli" // Shaders can also use include files - note the extension
 
 
 //--------------------------------------------------------------------------------------
 // Shader code
 //--------------------------------------------------------------------------------------
-
-// Vertex shader gets vertices from the mesh one at a time. It transforms their positions
-// from 3D into 2D (see lectures) and passes that position down the pipeline so pixels can
-// be rendered. 
 LightingPixelShaderInput main(BasicVertex modelVertex)
 {
     LightingPixelShaderInput output; // This is the data the pixel shader requires from this vertex shader
