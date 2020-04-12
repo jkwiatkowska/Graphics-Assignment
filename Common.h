@@ -82,7 +82,7 @@ struct PerFrameConstants
     float spotlightNumber;
     CVector3 padding;
 
-    SpotlightBuffer spotlights[25];
+    SpotlightBuffer spotlights[15];
 
     float pointlightNumber;
     CVector3 padding2;

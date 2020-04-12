@@ -76,7 +76,7 @@ Camera* gCamera;
 
 // Lights
 const int NUM_SPOTLIGHTS = 2;
-const int MAX_SPOTLIGHTS = 25;
+const int MAX_SPOTLIGHTS = 15;
 
 const int NUM_POINTLIGHTS = 2;
 const int MAX_POINTLIGHTS = 25;

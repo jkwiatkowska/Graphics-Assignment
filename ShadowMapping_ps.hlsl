@@ -1,6 +1,5 @@
 #include "Common.hlsli" // Shaders can also use include files - note the extension
 
-
 //--------------------------------------------------------------------------------------
 // Textures (texture maps)
 //--------------------------------------------------------------------------------------
@@ -9,7 +8,7 @@ SamplerState TexSampler      : register(s0); // A sampler is a filter for a text
 
 SamplerState PointClamp   : register(s1); // No filtering for shadow maps (you might think you could use trilinear or similar, but it will filter light depths not the shadows cast...)
 
-Texture2D ShadowMap[25] : register(t2);
+Texture2D ShadowMap[15] : register(t2);
 
 //--------------------------------------------------------------------------------------
 // Shader code

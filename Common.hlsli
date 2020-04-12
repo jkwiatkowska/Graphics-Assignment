@@ -82,7 +82,7 @@ cbuffer PerFrameConstants : register(b0) // The b0 gives this constant buffer th
 
     float gSpotlightNumber;
     float3 pad;
-    Spotlight gSpotlights[25];
+    Spotlight gSpotlights[15];
 
 
     float gPointlightNumber;
@@ -111,39 +111,33 @@ cbuffer PerModelConstants : register(b1) // The b1 gives this constant buffer th
     float    padding6;  // See notes on padding in structure above
 } 
 
-float SampleShadowMap(Texture2D shadowMap, SamplerState PointClamp, float4 lightProjection)
-{
-    float2 shadowMapUV = 0.5f * lightProjection.xy / lightProjection.w + float2(0.5f, 0.5f);
-    shadowMapUV.y = 1.0f - shadowMapUV.y;
-
-    float depthFromLight = lightProjection.z / lightProjection.w;
-
-    float2 offset;
+float SmoothSample(Texture2D map, SamplerState PointClamp, float2 uv, float compare)
+{   float2 offset;
     float strength = 0;
     float maxStrength = 0;
-    [unroll] for (int j = -3; j < 4; j++)
+    [unroll(5)] for (int j = -2; j < 3; j++)
     {
-        [unroll] for (int k = -3; k < 4; k++)
+        [unroll(5)] for (int k = -2; k < 3; k++)
         {
             offset.x = j * 0.00012f;
             offset.y = k * 0.00012f;
-            if (depthFromLight < shadowMap.Sample(PointClamp, shadowMapUV + offset).r)
+            if (compare < map.Sample(PointClamp, uv + offset).r)
             {
-                strength += 0.0204081633f;
+                strength += 0.04f;
             }
         }
     }
     return strength;
 }
 
-void CalculateLighting(Texture2D ShadowMap[25], float3 worldPosition, float3 worldNormal, SamplerState PointClamp, out float3 diffuseLight, out float3 specularLight)
+void CalculateLighting(Texture2D ShadowMap[15], float3 worldPosition, float3 worldNormal, SamplerState PointClamp, out float3 diffuseLight, out float3 specularLight)
 {
     diffuseLight = gAmbientColour;
     specularLight = 0;
 
     float3 cameraDirection = normalize(gCameraPosition - worldPosition);
 
-    for (int i = 0; i < gSpotlightNumber; i++)
+    [unroll(15)] for (int i = 0; i < gSpotlightNumber; i++)
     {
         // Direction from pixel to light
         float3 lightDirection = normalize(gSpotlights[i].position - worldPosition);
@@ -158,7 +152,12 @@ void CalculateLighting(Texture2D ShadowMap[25], float3 worldPosition, float3 wor
             float4 lightProjection = mul(gSpotlights[i].projectionMatrix, lightViewPosition);
 
             // Sample the shadow map to determine how strong the shadow on this pixel is
-            float strength = SampleShadowMap(ShadowMap[i], PointClamp, lightProjection);
+            float2 shadowMapUV = (0.5f * lightProjection.xy / lightProjection.w) + float2(0.5f, 0.5f);
+            shadowMapUV.y = 1.0f - shadowMapUV.y;
+
+            float depthFromLight = lightProjection.z / lightProjection.w;
+
+            float strength = SmoothSample(ShadowMap[i], PointClamp, shadowMapUV, depthFromLight);
 
             if (strength > 0)
             {
@@ -179,7 +178,7 @@ void CalculateLighting(Texture2D ShadowMap[25], float3 worldPosition, float3 wor
         }
     }
 
-    for (int i = 0; i < gPointlightNumber; i++)
+    [unroll(25)] for (int i = 0; i < gPointlightNumber; i++)
     {
         float3 lightDirection = normalize(gPointlights[i].position - worldPosition);
 
