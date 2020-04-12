@@ -15,10 +15,6 @@ Texture2D ShadowMap[15] : register(t2);
 //--------------------------------------------------------------------------------------
 float4 main(LightingPixelShaderInput input) : SV_Target
 {
-	// Slight adjustment to calculated depth of pixels so they don't shadow themselves
-	const float DepthAdjust = 0.0005f;
-
-    // Normal might have been scaled by model scaling or interpolation so renormalise
     input.worldNormal = normalize(input.worldNormal); 
 
 	///////////////////////
@@ -29,14 +25,12 @@ float4 main(LightingPixelShaderInput input) : SV_Target
 
 	////////////////////
 	// Combine lighting and textures
-
-    // Sample diffuse material and specular material colour for this pixel from a texture using a given sampler that you set up in the C++ code
     float4 textureColour = DiffuseSpecularMap.Sample(TexSampler, input.uv);
-    float3 diffuseMaterialColour = textureColour.rgb; // Diffuse material colour in texture RGB (base colour of model)
-    float specularMaterialColour = textureColour.a;   // Specular material colour in texture A (shininess of the surface)
+    float3 diffuseMaterialColour = textureColour.rgb;
+    float specularMaterialColour = textureColour.a;
 
     // Combine lighting with texture colours
     float3 finalColour = diffuseLight * diffuseMaterialColour + specularLight * specularMaterialColour;
 
-    return float4(finalColour, 1.0f); // Always use 1.0f for output alpha - no alpha blending in this lab
+    return float4(finalColour, 1.0f);
 }
