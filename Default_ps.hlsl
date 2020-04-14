@@ -4,7 +4,6 @@
 // Textures (texture maps)
 //--------------------------------------------------------------------------------------
 Texture2D DiffuseSpecularMap : register(t0);
-Texture2D DiffuseSpecularMap2 : register(t4);
 
 Texture2D ShadowMap[15] : register(t10);
 
