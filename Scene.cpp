@@ -39,11 +39,11 @@ Texture gStoneTexture  = Texture("StoneDiffuseSpecular.dds");
 Texture gCrateTexture  = Texture("CargoA.dds");
 Texture gGroundTexture = Texture("CobbleDiffuseSpecular.dds");
 Texture gLightTexture  = Texture("Flare.jpg");
-Texture gWoodTexture   = Texture("WoodDiffuseSpecular.dds");
+Texture gWoodTexture   = Texture("WoodDiffuseSpecular.dds", "WoodNormal.dds");
 Texture gWallTexture   = Texture("WallDiffuseSpecular.dds");
 Texture gTechTexture   = Texture("TechDiffuseSpecular.dds");
-Texture gPatternTexture= Texture("PatternDiffuseSpecular.dds");
-Texture gMetalTexture  = Texture("MetalDiffuseSpecular.dds");
+Texture gPatternTexture= Texture("PatternDiffuseSpecular.dds", "PatternNormal.dds");
+Texture gMetalTexture  = Texture("MetalDiffuseSpecular.dds", "MetalNormal.dds");
 Texture gGrassTexture  = Texture("GrassDiffuseSpecular.dds");
 
 //--------------------------------------------------------------------------------------
@@ -237,6 +237,11 @@ bool InitGeometry()
         if (!LoadTexture(gTextures[i]->name, &gTextures[i]->diffuseSpecularMap, &gTextures[i]->diffuseSpecularMapSRV))
         {
             gLastError = "Error loading textures";
+            return false;
+        }
+        if (gTextures[i]->normalName != "" && !LoadTexture(gTextures[i]->normalName, &gTextures[i]->normalMap, &gTextures[i]->normalMapSRV))
+        {
+            gLastError = "Error loading normal textures";
             return false;
         }
     }
