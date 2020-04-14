@@ -14,7 +14,10 @@ enum RenderMode
 	Wiggle,
 	TextureFade,
 	NormalMap,
-	ParallaxMap
+	ParallaxMap,
+	AddBlend,
+	MultBlend,
+	AlphBlend
 };
 
 //--------------------------------------------------------------------------------------

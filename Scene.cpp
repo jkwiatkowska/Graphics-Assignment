@@ -550,6 +550,38 @@ void RenderSceneFromCamera(Camera* camera)
         gPerModelConstants.objectColour = gPointlights[i].colour; // Set any per-model constants apart from the world matrix just before calling render (light colour here)
         gPointlights[i].model->Render();
     }
+
+    gD3DContext->PSSetShader(gAlphaPixelShader, nullptr, 0);
+    for (int i = 0; i < NUM_MODELS; i++)
+    {
+        if (gModels[i]->renderMode == AddBlend)
+        {
+            gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
+            gModels[i]->model->Render();
+        }
+    }
+
+    gD3DContext->OMSetBlendState(gMultiplicativeBlendingState, nullptr, 0xffffff);
+
+    for (int i = 0; i < NUM_MODELS; i++)
+    {
+        if (gModels[i]->renderMode == MultBlend)
+        {
+            gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
+            gModels[i]->model->Render();
+        }
+    }
+
+    gD3DContext->OMSetBlendState(gAlphaBlendingState, nullptr, 0xffffff);
+
+    for (int i = 0; i < NUM_MODELS; i++)
+    {
+        if (gModels[i]->renderMode == AlphBlend)
+        {
+            gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
+            gModels[i]->model->Render();
+        }
+    }
 }
 
 
