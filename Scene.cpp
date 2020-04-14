@@ -376,12 +376,12 @@ bool InitScene()
     // Flickering light
     gPointlights[0].colour = { 0.2f, 0.7f, 1.0f };
     gPointlights[0].SetStrength(25);
-    gPointlights[0].model->SetPosition({ 20, 15, 12 });
+    gPointlights[0].model->SetPosition({ 20, 18, 19 });
     gPointlights[0].model->FaceTarget(gCamera->Position());
 
     // Colour changing light
     gPointlights[1].colour = { 1.0f, 0.0f, 0.24f };
-    gPointlights[1].SetStrength(25);
+    gPointlights[1].SetStrength(20);
     gPointlights[1].model->SetPosition({ -20, 18, 10 });
     gPointlights[1].model->FaceTarget(gCamera->Position());
 
