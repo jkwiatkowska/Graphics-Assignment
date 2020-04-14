@@ -37,12 +37,12 @@ Texture* gTextures[NUM_TEXTURES];
 
 Texture gStoneTexture   = Texture("StoneDiffuseSpecular.dds");
 Texture gCrateTexture   = Texture("CargoA.dds");
-Texture gGroundTexture  = Texture("CobbleDiffuseSpecular.dds");
+Texture gGroundTexture  = Texture("CobbleDiffuseSpecular.dds", "CobbleNormalHeight.dds");
 Texture gLightTexture   = Texture("Flare.jpg");
 Texture gWoodTexture    = Texture("WoodDiffuseSpecular.dds", "WoodNormal.dds");
-Texture gWallTexture    = Texture("WallDiffuseSpecular.dds");
-Texture gTechTexture    = Texture("TechDiffuseSpecular.dds");
-Texture gPatternTexture = Texture("PatternDiffuseSpecular.dds", "PatternNormal.dds");
+Texture gWallTexture    = Texture("WallDiffuseSpecular.dds", "WallNormalHeight.dds");
+Texture gTechTexture    = Texture("TechDiffuseSpecular.dds", "TechNormalHeight.dds");
+Texture gPatternTexture = Texture("PatternDiffuseSpecular.dds", "PatternNormalHeight.dds");
 Texture gMetalTexture   = Texture("MetalDiffuseSpecular.dds", "MetalNormal.dds");
 Texture gGrassTexture   = Texture("GrassDiffuseSpecular.dds");
 
@@ -134,7 +134,7 @@ bool InitGeometry()
     {
         gTeapotMesh      = new Mesh("Teapot.x");
         gCrateMesh       = new Mesh("CargoContainer.x");
-        gGroundMesh      = new Mesh("Ground.x");
+        gGroundMesh      = new Mesh("Ground.x", true);
         gLightMesh       = new Mesh("Light.x");
         gSphereMesh      = new Mesh("Sphere.x");
         gCubeMesh        = new Mesh("Cube.x");
@@ -290,12 +290,13 @@ bool InitScene()
     
     // Ground
     gGround.model    = new Model(gGroundMesh);
+    gGround.renderMode = ParallaxMap;
     gGround.model->SetScale(0.8f);
     gModels[2] = &gGround;
 
     // Wiggle sphere
     gWiggleSphere.model = new Model(gSphereMesh);
-    gWiggleSphere.shader = Wiggle;
+    gWiggleSphere.renderMode = Wiggle;
     gWiggleSphere.model->SetPosition({ 0, 6, -5 });
     gWiggleSphere.model->SetScale(0.3f);
     
@@ -313,7 +314,7 @@ bool InitScene()
     {
         gBricks[i] = SceneModel(&gWallTexture, &gPatternTexture);
         gBricks[i].model = new Model(gCubeMesh);
-        if (fadeBrick[i]) gBricks[i].shader = TextureFade;
+        if (fadeBrick[i]) gBricks[i].renderMode = TextureFade;
 
         int x = i % brickRow;
         int y = (i - x) / brickRow;
@@ -332,7 +333,7 @@ bool InitScene()
 
     // Normal mapping cube
     gNormalCube.model = new Model(gTangentCubeMesh);
-    gNormalCube.shader = NormalMap;
+    gNormalCube.renderMode = NormalMap;
     gNormalCube.model->SetPosition({ -20, 4, 35 });
     gNormalCube.model->SetRotation({ 0, -70, 0 });
     gNormalCube.model->SetScale(0.8f);
@@ -471,7 +472,7 @@ void RenderSceneFromCamera(Camera* camera)
     // the Mesh render function, which will set up vertex & index buffer before finally calling Draw on the GPU
     for (int i = 0; i < NUM_MODELS; i++)
     {
-        if (gModels[i]->shader == Default)
+        if (gModels[i]->renderMode == Default)
         {
             gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
             gModels[i]->model->Render();
@@ -481,7 +482,7 @@ void RenderSceneFromCamera(Camera* camera)
     gD3DContext->PSSetShader(gTexFadePixelShader, nullptr, 0);
     for (int i = 0; i < NUM_MODELS; i++)
     {
-        if (gModels[i]->shader == TextureFade)
+        if (gModels[i]->renderMode == TextureFade)
         {
             gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
             gD3DContext->PSSetShaderResources(4, 1, &gModels[i]->texture2->diffuseSpecularMapSRV);
@@ -493,7 +494,7 @@ void RenderSceneFromCamera(Camera* camera)
     gD3DContext->PSSetShader(gWigglePixelShader, nullptr, 0);
     for (int i = 0; i < NUM_MODELS; i++)
     {
-        if (gModels[i]->shader == Wiggle)
+        if (gModels[i]->renderMode == Wiggle)
         {
             gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
             gModels[i]->model->Render();
@@ -504,7 +505,18 @@ void RenderSceneFromCamera(Camera* camera)
     gD3DContext->PSSetShader(gNormalMappingPixelShader, nullptr, 0);
     for (int i = 0; i < NUM_MODELS; i++)
     {
-        if (gModels[i]->shader == NormalMap)
+        if (gModels[i]->renderMode == NormalMap)
+        {
+            gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
+            gD3DContext->PSSetShaderResources(1, 1, &gModels[i]->texture->normalMapSRV);
+            gModels[i]->model->Render();
+        }
+    }
+
+    gD3DContext->PSSetShader(gParallaxMappingPixelShader, nullptr, 0);
+    for (int i = 0; i < NUM_MODELS; i++)
+    {
+        if (gModels[i]->renderMode == ParallaxMap)
         {
             gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
             gD3DContext->PSSetShaderResources(1, 1, &gModels[i]->texture->normalMapSRV);
@@ -567,6 +579,8 @@ void RenderScene()
     gPerFrameConstants.ambientColour  = gAmbientColour;
     gPerFrameConstants.specularPower  = gSpecularPower;
     gPerFrameConstants.cameraPosition = gCamera->Position();
+
+    gPerFrameConstants.parallaxDepth = 0.08f;
 
     //***************************************//
     //// Render from light's point of view ////

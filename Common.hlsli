@@ -113,6 +113,9 @@ cbuffer PerFrameConstants : register(b0) // The b0 gives this constant buffer th
 
     float3   gCameraPosition;
     float    gWiggle;
+
+    float    gParallaxDepth;
+    float3   pad3;
 }
 // Note constant buffers are not structs: we don't use the name of the constant buffer, these are really just a collection of global variables (hence the 'g')
 
@@ -130,7 +133,7 @@ cbuffer PerModelConstants : register(b1) // The b1 gives this constant buffer th
     float    padding6;  // See notes on padding in structure above
 } 
 
-float SmoothSample(Texture2D map, SamplerState PointClamp, float2 uv, float compare)
+float SmoothSample(Texture2D map, SamplerState PointClamp, float2 uv, float compare, float2 uvOffset = (0, 0))
 {   float2 offset;
     float strength = 0;
     float maxStrength = 0;
@@ -140,7 +143,7 @@ float SmoothSample(Texture2D map, SamplerState PointClamp, float2 uv, float comp
         {
             offset.x = j * 0.00012f;
             offset.y = k * 0.00008f;
-            if (compare < map.Sample(PointClamp, uv + offset).r)
+            if (compare < map.Sample(PointClamp, uv + offset + uvOffset).r)
             {
                 strength += 0.0222222222f;
             }
@@ -149,7 +152,7 @@ float SmoothSample(Texture2D map, SamplerState PointClamp, float2 uv, float comp
     return strength;
 }
 
-void CalculateLighting(Texture2D ShadowMap[15], float3 worldPosition, float3 worldNormal, SamplerState PointClamp, out float3 diffuseLight, out float3 specularLight)
+void CalculateLighting(Texture2D ShadowMap[15], float3 worldPosition, float3 worldNormal, SamplerState PointClamp, out float3 diffuseLight, out float3 specularLight, float2 offsetCoord = (0, 0))
 {
     diffuseLight = gAmbientColour;
     specularLight = 0;

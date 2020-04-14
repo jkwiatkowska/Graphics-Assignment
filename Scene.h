@@ -8,7 +8,7 @@
 
 class SceneModel;
 
-enum ShaderType
+enum RenderMode
 {
 	Default,
 	Wiggle,

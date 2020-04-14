@@ -5,10 +5,10 @@
 //--------------------------------------------------------------------------------------
 Texture2D DiffuseSpecularMap : register(t0);
 
-Texture2D ShadowMap[15] : register(t10);
+Texture2D ShadowMap[15]      : register(t10);
 
 SamplerState TexSampler      : register(s0);
-SamplerState PointClamp   : register(s1);
+SamplerState PointClamp      : register(s1);
 
 //--------------------------------------------------------------------------------------
 // Shader code

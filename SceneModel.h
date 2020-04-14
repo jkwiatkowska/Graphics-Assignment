@@ -26,7 +26,7 @@ public:
 	Model* model = nullptr;
 	Texture* texture = nullptr;
 	Texture* texture2 = nullptr;
-	ShaderType shader = Default;
+	RenderMode renderMode = Default;
 
 	SceneModel()
 	{

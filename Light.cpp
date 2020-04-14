@@ -62,13 +62,13 @@ void Spotlight::RenderDepthBufferFromLight(int numModels, SceneModel* models[])
     // Render models - no state changes required between each object in this situation (no textures used in this step)
     for (int i = 0; i < numModels; i++)
     {
-        if (models[i]->shader == Default || models[i]->shader == TextureFade || models[i]->shader == NormalMap || models[i]->shader == ParallaxMap) 
+        if (models[i]->renderMode == Default || models[i]->renderMode == TextureFade || models[i]->renderMode == NormalMap || models[i]->renderMode == ParallaxMap) 
             models[i]->model->Render();
     }
     gD3DContext->VSSetShader(gWiggleVertexShader, nullptr, 0);
     for (int i = 0; i < numModels; i++)
     {
-        if (models[i]->shader == Wiggle) models[i]->model->Render();
+        if (models[i]->renderMode == Wiggle) models[i]->model->Render();
     }
 }
 
