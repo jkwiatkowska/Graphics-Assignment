@@ -41,8 +41,9 @@ float4 main(NormalMappingPixelShaderInput input) : SV_Target
 	// Calculate lighting
 	float3 diffuseLight;
 	float3 specularLight;
-	CalculateLighting(ShadowMap, input.worldPosition, worldNormal, PointClamp, diffuseLight, specularLight);
-
+	//CalculateLighting(ShadowMap, input.worldPosition, worldNormal, PointClamp, diffuseLight, specularLight);
+	diffuseLight = 1;
+	specularLight = 0;
 	////////////////////
 	// Combine lighting and textures
 	float4 textureColour = DiffuseSpecularMap.Sample(TexSampler, input.uv);

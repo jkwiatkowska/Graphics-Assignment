@@ -19,6 +19,8 @@ ID3D11VertexShader* gDefaultVertexShader = nullptr;
 ID3D11PixelShader*  gDefaultPixelShader  = nullptr;
 ID3D11VertexShader* gWiggleVertexShader = nullptr;
 ID3D11PixelShader*  gWigglePixelShader  = nullptr;
+ID3D11VertexShader* gNormalMappingVertexShader = nullptr;
+ID3D11PixelShader*  gNormalMappingPixelShader  = nullptr;
 ID3D11VertexShader* gBasicTransformVertexShader = nullptr; // Used before light model and depth-only pixel shader
 ID3D11PixelShader*  gLightModelPixelShader  = nullptr;
 ID3D11PixelShader*  gDepthOnlyPixelShader  = nullptr;
@@ -34,17 +36,20 @@ bool LoadShaders()
     // Shaders must be added to the Visual Studio project to be compiled, they use the extension ".hlsl".
     // To load them for use, include them here without the extension. Use the correct function for each.
     // Ensure you release the shaders in the ShutdownDirect3D function below
-    gDefaultVertexShader  = LoadVertexShader("Default_vs"); // Note how the shader files are named to show what type they are
-    gDefaultPixelShader   = LoadPixelShader ("Default_ps");
+    gDefaultVertexShader        = LoadVertexShader("Default_vs"); // Note how the shader files are named to show what type they are
+    gDefaultPixelShader         = LoadPixelShader ("Default_ps");
     gWiggleVertexShader         = LoadVertexShader("Wiggle_vs"); 
     gWigglePixelShader          = LoadPixelShader ("Wiggle_ps");
+    gNormalMappingVertexShader  = LoadVertexShader("NormalMapping_vs");
+    gNormalMappingPixelShader   = LoadPixelShader("NormalMapping_ps");
     gBasicTransformVertexShader = LoadVertexShader("BasicTransform_vs");
     gLightModelPixelShader      = LoadPixelShader ("LightModel_ps");
     gDepthOnlyPixelShader       = LoadPixelShader ("DepthOnly_ps");
     gTexFadePixelShader         = LoadPixelShader("TextureFade_ps");
 
-    if (gDefaultVertexShader  == nullptr || gDefaultPixelShader == nullptr ||
-        gWiggleVertexShader         == nullptr || gWigglePixelShader        == nullptr ||
+    if (gDefaultVertexShader  == nullptr       || gDefaultPixelShader == nullptr       ||
+        gNormalMappingVertexShader == nullptr  || gNormalMappingPixelShader == nullptr ||
+        gWiggleVertexShader == nullptr         || gWigglePixelShader == nullptr        ||
         gBasicTransformVertexShader == nullptr || gLightModelPixelShader    == nullptr || gDepthOnlyPixelShader == nullptr ||
         gTexFadePixelShader         == nullptr)
     {
@@ -61,10 +66,12 @@ void ReleaseShaders()
     if (gDepthOnlyPixelShader)        gDepthOnlyPixelShader->Release();
     if (gLightModelPixelShader)       gLightModelPixelShader->Release();
     if (gBasicTransformVertexShader)  gBasicTransformVertexShader->Release();
-    if (gDefaultPixelShader)    gDefaultPixelShader->Release();
-    if (gDefaultVertexShader)   gDefaultVertexShader->Release();
+    if (gDefaultPixelShader)          gDefaultPixelShader->Release();
+    if (gDefaultVertexShader)         gDefaultVertexShader->Release();
     if (gWigglePixelShader)           gWigglePixelShader->Release();
     if (gWiggleVertexShader)          gWiggleVertexShader->Release();
+    if (gNormalMappingPixelShader)    gNormalMappingPixelShader->Release();
+    if (gNormalMappingVertexShader)   gNormalMappingVertexShader->Release();
     if (gTexFadePixelShader)          gTexFadePixelShader->Release();
 }
 

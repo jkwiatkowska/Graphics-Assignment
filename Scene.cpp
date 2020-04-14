@@ -35,16 +35,16 @@
 const int NUM_TEXTURES = 10;
 Texture* gTextures[NUM_TEXTURES];
 
-Texture gStoneTexture  = Texture("StoneDiffuseSpecular.dds");
-Texture gCrateTexture  = Texture("CargoA.dds");
-Texture gGroundTexture = Texture("CobbleDiffuseSpecular.dds");
-Texture gLightTexture  = Texture("Flare.jpg");
-Texture gWoodTexture   = Texture("WoodDiffuseSpecular.dds", "WoodNormal.dds");
-Texture gWallTexture   = Texture("WallDiffuseSpecular.dds");
-Texture gTechTexture   = Texture("TechDiffuseSpecular.dds");
-Texture gPatternTexture= Texture("PatternDiffuseSpecular.dds", "PatternNormal.dds");
-Texture gMetalTexture  = Texture("MetalDiffuseSpecular.dds", "MetalNormal.dds");
-Texture gGrassTexture  = Texture("GrassDiffuseSpecular.dds");
+Texture gStoneTexture   = Texture("StoneDiffuseSpecular.dds");
+Texture gCrateTexture   = Texture("CargoA.dds");
+Texture gGroundTexture  = Texture("CobbleDiffuseSpecular.dds");
+Texture gLightTexture   = Texture("Flare.jpg");
+Texture gWoodTexture    = Texture("WoodDiffuseSpecular.dds", "WoodNormal.dds");
+Texture gWallTexture    = Texture("WallDiffuseSpecular.dds");
+Texture gTechTexture    = Texture("TechDiffuseSpecular.dds");
+Texture gPatternTexture = Texture("PatternDiffuseSpecular.dds", "PatternNormal.dds");
+Texture gMetalTexture   = Texture("MetalDiffuseSpecular.dds", "MetalNormal.dds");
+Texture gGrassTexture   = Texture("GrassDiffuseSpecular.dds");
 
 //--------------------------------------------------------------------------------------
 // Scene Data
@@ -58,14 +58,15 @@ const float MOVEMENT_SPEED = 50.0f; // 50 units per second for movement (what a 
 
 
 // Meshes, models and cameras, same meaning as TL-Engine. Meshes prepared in InitGeometry function, Models & camera in InitScene
-Mesh* gCharacterMesh;
+Mesh* gTeapotMesh;
 Mesh* gCrateMesh;
 Mesh* gGroundMesh;
 Mesh* gLightMesh;
 Mesh* gSphereMesh;
 Mesh* gCubeMesh;
+Mesh* gNormalCubeMesh;
 
-const int NUM_MODELS = 18;
+const int NUM_MODELS = 19;
 SceneModel* gModels[NUM_MODELS];
 
 SceneModel gTeapot = SceneModel(&gStoneTexture);
@@ -77,8 +78,9 @@ SceneModel gWiggleSphere = SceneModel(&gStoneTexture);
 const int NUM_BRICKS = 14;
 SceneModel gBricks[NUM_BRICKS];
 
-Camera* gCamera;
+SceneModel gNormalCube = SceneModel(&gPatternTexture);
 
+Camera* gCamera;
 
 // Lights
 const int NUM_SPOTLIGHTS = 2;
@@ -130,12 +132,13 @@ bool InitGeometry()
     // IMPORTANT NOTE: Will only keep the first object from the mesh - multipart objects will have parts missing - see later lab for more robust loader
     try 
     {
-        gCharacterMesh = new Mesh("Teapot.x");
-        gCrateMesh     = new Mesh("CargoContainer.x");
-        gGroundMesh    = new Mesh("Ground.x");
-        gLightMesh     = new Mesh("Light.x");
-        gSphereMesh    = new Mesh("Sphere.x");
-        gCubeMesh      = new Mesh("Cube.x");
+        gTeapotMesh     = new Mesh("Teapot.x");
+        gCrateMesh      = new Mesh("CargoContainer.x");
+        gGroundMesh     = new Mesh("Ground.x");
+        gLightMesh      = new Mesh("Light.x");
+        gSphereMesh     = new Mesh("Sphere.x");
+        gCubeMesh       = new Mesh("Cube.x");
+        gNormalCubeMesh = new Mesh("NormalCube.x");
     }
     catch (std::runtime_error e)  // Constructors cannot return error messages so use exceptions to catch mesh errors (fairly standard approach this)
     {
@@ -270,7 +273,7 @@ bool InitScene()
     //// Set up scene ////
 
     // Teapot
-    gTeapot.model = new Model(gCharacterMesh);
+    gTeapot.model = new Model(gTeapotMesh);
     gTeapot.model->SetPosition({ 15, 0, 0 });
     gTeapot.model->SetScale(1);
     gTeapot.model->SetRotation({ 0, ToRadians(215.0f), 0 });
@@ -326,6 +329,16 @@ bool InitScene()
 
         gModels[4 + i] = &gBricks[i];
     }
+
+    // Normal cube
+    gNormalCube = SceneModel(&gPatternTexture);
+    gNormalCube.model = new Model(gNormalCubeMesh);
+    gNormalCube.shader = NormalMap;
+    gNormalCube.model->SetPosition({ -16, 6, 25 });
+    gNormalCube.model->SetRotation({ 0, -50, 0 });
+    gNormalCube.model->SetScale(0.8f);
+
+    gModels[18] = &gNormalCube;
 
     // Light set-up
     int lightIndex = 0;
@@ -410,11 +423,13 @@ void ReleaseResources()
         gModels[i]->~SceneModel();
     }
 
-    delete gLightMesh;     gLightMesh     = nullptr;
-    delete gGroundMesh;    gGroundMesh    = nullptr;
-    delete gCrateMesh;     gCrateMesh     = nullptr;
-    delete gCharacterMesh; gCharacterMesh = nullptr;
-    delete gSphereMesh;    gSphereMesh    = nullptr;
+    delete gLightMesh;      gLightMesh      = nullptr;
+    delete gGroundMesh;     gGroundMesh     = nullptr;
+    delete gCrateMesh;      gCrateMesh      = nullptr;
+    delete gTeapotMesh;     gTeapotMesh     = nullptr;
+    delete gSphereMesh;     gSphereMesh     = nullptr;
+    delete gCubeMesh;       gCubeMesh       = nullptr;
+    delete gNormalCubeMesh; gNormalCubeMesh = nullptr;
 }
 
 
@@ -471,6 +486,18 @@ void RenderSceneFromCamera(Camera* camera)
         {
             gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
             gD3DContext->PSSetShaderResources(4, 1, &gModels[i]->texture2->diffuseSpecularMapSRV);
+            gModels[i]->model->Render();
+        }
+    }
+
+    gD3DContext->VSSetShader(gNormalMappingVertexShader, nullptr, 0);
+    gD3DContext->PSSetShader(gNormalMappingPixelShader, nullptr, 0);
+    for (int i = 0; i < NUM_MODELS; i++)
+    {
+        if (gModels[i]->shader == NormalMap)
+        {
+            gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
+            gD3DContext->PSSetShaderResources(1, 1, &gModels[i]->texture->normalMapSRV);
             gModels[i]->model->Render();
         }
     }
