@@ -64,7 +64,7 @@ Mesh* gGroundMesh;
 Mesh* gLightMesh;
 Mesh* gSphereMesh;
 Mesh* gCubeMesh;
-Mesh* gNormalCubeMesh;
+Mesh* gTangentCubeMesh;
 
 const int NUM_MODELS = 19;
 SceneModel* gModels[NUM_MODELS];
@@ -132,13 +132,13 @@ bool InitGeometry()
     // IMPORTANT NOTE: Will only keep the first object from the mesh - multipart objects will have parts missing - see later lab for more robust loader
     try 
     {
-        gTeapotMesh     = new Mesh("Teapot.x");
-        gCrateMesh      = new Mesh("CargoContainer.x");
-        gGroundMesh     = new Mesh("Ground.x");
-        gLightMesh      = new Mesh("Light.x");
-        gSphereMesh     = new Mesh("Sphere.x");
-        gCubeMesh       = new Mesh("Cube.x");
-        gNormalCubeMesh = new Mesh("NormalCube.x");
+        gTeapotMesh      = new Mesh("Teapot.x");
+        gCrateMesh       = new Mesh("CargoContainer.x");
+        gGroundMesh      = new Mesh("Ground.x");
+        gLightMesh       = new Mesh("Light.x");
+        gSphereMesh      = new Mesh("Sphere.x");
+        gCubeMesh        = new Mesh("Cube.x");
+        gTangentCubeMesh = new Mesh("Cube.x", true);
     }
     catch (std::runtime_error e)  // Constructors cannot return error messages so use exceptions to catch mesh errors (fairly standard approach this)
     {
@@ -330,12 +330,11 @@ bool InitScene()
         gModels[4 + i] = &gBricks[i];
     }
 
-    // Normal cube
-    gNormalCube = SceneModel(&gPatternTexture);
-    gNormalCube.model = new Model(gNormalCubeMesh);
+    // Normal mapping cube
+    gNormalCube.model = new Model(gTangentCubeMesh);
     gNormalCube.shader = NormalMap;
-    gNormalCube.model->SetPosition({ -16, 6, 25 });
-    gNormalCube.model->SetRotation({ 0, -50, 0 });
+    gNormalCube.model->SetPosition({ -20, 4, 35 });
+    gNormalCube.model->SetRotation({ 0, -70, 0 });
     gNormalCube.model->SetScale(0.8f);
 
     gModels[18] = &gNormalCube;
@@ -367,10 +366,10 @@ bool InitScene()
     gSpotlights[0].model->FaceTarget(gTeapot.model->Position());
 
 
-    // Sun (fake directional light)
+    // Far light
     gSpotlights[1].colour = { 1.0f, 0.8f, 0.2f };
     gSpotlights[1].SetStrength(80);
-    gSpotlights[1].model->SetPosition({ -200, 360, 495 });
+    gSpotlights[1].model->SetPosition({ -120, 270, 305 });
     gSpotlights[1].model->FaceTarget({ 0, 0, -100 });
     gSpotlights[1].isSpot = false;
 
@@ -429,7 +428,7 @@ void ReleaseResources()
     delete gTeapotMesh;     gTeapotMesh     = nullptr;
     delete gSphereMesh;     gSphereMesh     = nullptr;
     delete gCubeMesh;       gCubeMesh       = nullptr;
-    delete gNormalCubeMesh; gNormalCubeMesh = nullptr;
+    delete gTangentCubeMesh; gTangentCubeMesh = nullptr;
 }
 
 
@@ -490,6 +489,17 @@ void RenderSceneFromCamera(Camera* camera)
         }
     }
 
+    gD3DContext->VSSetShader(gWiggleVertexShader, nullptr, 0);
+    gD3DContext->PSSetShader(gWigglePixelShader, nullptr, 0);
+    for (int i = 0; i < NUM_MODELS; i++)
+    {
+        if (gModels[i]->shader == Wiggle)
+        {
+            gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
+            gModels[i]->model->Render();
+        }
+    }
+
     gD3DContext->VSSetShader(gNormalMappingVertexShader, nullptr, 0);
     gD3DContext->PSSetShader(gNormalMappingPixelShader, nullptr, 0);
     for (int i = 0; i < NUM_MODELS; i++)
@@ -498,17 +508,6 @@ void RenderSceneFromCamera(Camera* camera)
         {
             gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
             gD3DContext->PSSetShaderResources(1, 1, &gModels[i]->texture->normalMapSRV);
-            gModels[i]->model->Render();
-        }
-    }
-
-    gD3DContext->VSSetShader(gWiggleVertexShader, nullptr, 0);
-    gD3DContext->PSSetShader(gWigglePixelShader, nullptr, 0);
-    for (int i = 0; i < NUM_MODELS; i++)
-    {
-        if (gModels[i]->shader == Wiggle)
-        {
-            gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
             gModels[i]->model->Render();
         }
     }

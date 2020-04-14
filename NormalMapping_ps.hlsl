@@ -31,7 +31,6 @@ float4 main(NormalMappingPixelShaderInput input) : SV_Target
 	// Get the texture normal from the normal map. The r,g,b pixel values actually store x,y,z components of a normal. However, r,g,b
 	// values are stored in the range 0->1, whereas the x, y & z components should be in the range -1->1. So some scaling is needed
 	float3 textureNormal = 2.0f * NormalMap.Sample(TexSampler, input.uv).rgb - 1.0f; // Scale from 0->1 to -1->1
-	textureNormal.z *= 0.1f;
 
 	// Now convert the texture normal into model space using the inverse tangent matrix, and then convert into world space using the world
 	// matrix. Normalise, because of the effects of texture filtering and in case the world matrix contains scaling
@@ -41,9 +40,8 @@ float4 main(NormalMappingPixelShaderInput input) : SV_Target
 	// Calculate lighting
 	float3 diffuseLight;
 	float3 specularLight;
-	//CalculateLighting(ShadowMap, input.worldPosition, worldNormal, PointClamp, diffuseLight, specularLight);
-	diffuseLight = 1;
-	specularLight = 0;
+	CalculateLighting(ShadowMap, input.worldPosition, worldNormal, PointClamp, diffuseLight, specularLight);
+	
 	////////////////////
 	// Combine lighting and textures
 	float4 textureColour = DiffuseSpecularMap.Sample(TexSampler, input.uv);
