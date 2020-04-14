@@ -12,7 +12,9 @@ enum ShaderType
 {
 	Default,
 	Wiggle,
-	TextureFade
+	TextureFade,
+	NormalMap,
+	ParallaxMap
 };
 
 //--------------------------------------------------------------------------------------
