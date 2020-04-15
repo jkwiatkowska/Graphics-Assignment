@@ -37,7 +37,7 @@ CVector3 Spotlight::GetFacing()
 }
 
 // Render the scene from the given light's point of view. Only renders depth buffer
-void Spotlight::RenderDepthBufferFromLight(int numModels, SceneModel* models[])
+void Spotlight::RenderShadowMap(int numModels, SceneModel* models[])
 {
     // Get camera-like matrices from the spotlight, set in the constant buffer and send over to GPU
     gPerFrameConstants.viewMatrix = CalculateLightViewMatrix();
@@ -80,6 +80,17 @@ void Spotlight::RenderDepthBufferFromLight(int numModels, SceneModel* models[])
 
 void Spotlight::RenderColourMap(int numModels, SceneModel* models[])
 {
+    // Get camera-like matrices from the spotlight, set in the constant buffer and send over to GPU
+    gPerFrameConstants.viewMatrix = CalculateLightViewMatrix();
+    gPerFrameConstants.projectionMatrix = CalculateLightProjectionMatrix();
+    gPerFrameConstants.viewProjectionMatrix = gPerFrameConstants.viewMatrix * gPerFrameConstants.projectionMatrix;
+    UpdateConstantBuffer(gPerFrameConstantBuffer, gPerFrameConstants);
+
+    // Indicate that the constant buffer we just updated is for use in the vertex shader (VS) and pixel shader (PS)
+    gD3DContext->VSSetConstantBuffers(0, 1, &gPerFrameConstantBuffer); // First parameter must match constant buffer number in the shader 
+    gD3DContext->PSSetConstantBuffers(0, 1, &gPerFrameConstantBuffer);
+
+    // Shaders
     gD3DContext->VSSetShader(gBasicTransformVertexShader, nullptr, 0);
     gD3DContext->PSSetShader(gAlphaPixelShader, nullptr, 0);
 
@@ -115,11 +126,11 @@ void Spotlight::RenderFromLightPOV(int numModels, SceneModel* models[])
     gD3DContext->ClearDepthStencilView(shadowMapDepthStencil, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
     // Render the scene from the point of view of light (only depth values written)
-    RenderDepthBufferFromLight(numModels, models);
+    RenderShadowMap(numModels, models);
 
     // Create colour map
     gD3DContext->OMSetRenderTargets(1, &colourMapRenderTarget, nullptr);
-    gD3DContext->ClearRenderTargetView(nullptr, gWhite);
+    gD3DContext->ClearRenderTargetView(colourMapRenderTarget, gWhite);
 
     RenderColourMap(numModels, models);
 }

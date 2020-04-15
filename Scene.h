@@ -18,7 +18,8 @@ enum RenderMode
 	AddBlend,
 	AddBlendLight,
 	MultBlend,
-	AlphBlend
+	AlphBlend,
+	None // Assign this to hide the object
 };
 
 //--------------------------------------------------------------------------------------

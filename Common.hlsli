@@ -140,8 +140,8 @@ float ShadowMapSample(Texture2D map, SamplerState PointClamp, float2 uv, float c
     {
         [unroll(9)] for (int k = -3; k < 4; k++)
         {
-            offset.x = j * 0.00012f;
-            offset.y = k * 0.00008f;
+            offset.x = j * 0.00006f;
+            offset.y = k * 0.00003f;
             if (compare < map.Sample(PointClamp, uv + offset).r)
             {
                 strength += 0.0222222222f;
@@ -159,8 +159,8 @@ float3 ColourMapSample(Texture2D map, SamplerState PointClamp, float2 uv)
     {
         [unroll(9)] for (int k = -3; k < 4; k++)
         {
-            offset.x = j * 0.00012f;
-            offset.y = k * 0.00008f;
+            offset.x = j * 0.00006f;
+            offset.y = k * 0.00003f;
             colour += 0.0222222222f * map.Sample(PointClamp, uv + offset);
         }
     }
@@ -204,13 +204,10 @@ void CalculateLighting(Texture2D ShadowMap[15], float3 worldPosition, float3 wor
                 else lightDist = length(gSpotlights[i].position - worldPosition);
 
                 float3 colour = (gSpotlights[i].colour * max(dot(worldNormal, lightDirection), 0) / lightDist);
-                if (strength == 1 && shadowColour)
-                {
-                    //colour *= (ColourMapSample(ColourMap[i], PointClamp, shadowMapUV));
-                    colour = ColourMap[i].Sample(PointClamp, shadowMapUV);
-                }
+                if (shadowColour) colour *= (ColourMapSample(ColourMap[i], PointClamp, shadowMapUV));
                 colour *= strength;
-                colour = ColourMap[i].Sample(PointClamp, shadowMapUV);
+                //colour = ColourMap[i].Sample(PointClamp, shadowMapUV);
+
                 diffuseLight += colour;
 
                 float3 halfway = normalize(lightDirection + cameraDirection);

@@ -50,7 +50,7 @@ public:
 
     CMatrix4x4 CalculateLightViewMatrix();
     CMatrix4x4 CalculateLightProjectionMatrix();
-    void RenderDepthBufferFromLight(int numModels, SceneModel* models[]);
+    void RenderShadowMap(int numModels, SceneModel* models[]);
 };
 
 class Pointlight : public Light

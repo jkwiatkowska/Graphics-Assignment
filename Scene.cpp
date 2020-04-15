@@ -389,7 +389,7 @@ bool InitScene()
     gPortal.model = new Model(gPortalMesh);
     gPortal.model->SetPosition({ -20, 15, 70 });
     gPortal.model->SetRotation({ 0, 40, 0 });
-    gPortal.renderMode = Default;
+    gPortal.renderMode = None;
 
     gModels[20] = &gPortal;
 
@@ -722,8 +722,8 @@ void RenderScene()
         colourMaps[i] = gSpotlights[i].colourMapSRV;
     }
 
-    gD3DContext->PSSetShaderResources(30, NUM_SPOTLIGHTS, shadowMaps);
-    gD3DContext->PSSetShaderResources(10, NUM_SPOTLIGHTS, colourMaps);
+    gD3DContext->PSSetShaderResources(10, NUM_SPOTLIGHTS, shadowMaps);
+    gD3DContext->PSSetShaderResources(30, NUM_SPOTLIGHTS, colourMaps);
     gD3DContext->PSSetSamplers(1, 1, &gPointSampler);
 
     // Render the scene for the main window
