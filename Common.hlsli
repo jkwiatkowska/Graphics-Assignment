@@ -168,7 +168,7 @@ float3 ColourMapSample(Texture2D map, SamplerState PointClamp, float2 uv)
 }
 
 void CalculateLighting(Texture2D ShadowMap[15], float3 worldPosition, float3 worldNormal, SamplerState PointClamp, out float3 diffuseLight, out float3 specularLight,
-    Texture2D ColourMap[15], bool shadowColour = false)
+    Texture2D ColourMap[15], bool transparentShadows = false)
 {
     diffuseLight = gAmbientColour;
     specularLight = 0;
@@ -203,15 +203,13 @@ void CalculateLighting(Texture2D ShadowMap[15], float3 worldPosition, float3 wor
                 if (gSpotlights[i].isSpot == 0) lightDist = 150; // Set value for fake directional light
                 else lightDist = length(gSpotlights[i].position - worldPosition);
 
-                float3 colour = (gSpotlights[i].colour * max(dot(worldNormal, lightDirection), 0) / lightDist);
-                if (shadowColour) colour *= (ColourMapSample(ColourMap[i], PointClamp, shadowMapUV));
-                colour *= strength;
-                //colour = ColourMap[i].Sample(PointClamp, shadowMapUV);
+                float3 shadow = 1;
+                if (transparentShadows) shadow = ColourMapSample(ColourMap[i], PointClamp, shadowMapUV);
 
-                diffuseLight += colour;
+                diffuseLight += (gSpotlights[i].colour * max(dot(worldNormal, lightDirection), 0) / lightDist) * shadow * strength;
 
                 float3 halfway = normalize(lightDirection + cameraDirection);
-                specularLight += diffuseLight * pow(max(dot(worldNormal, halfway), 0), gSpecularPower) * strength;
+                specularLight += diffuseLight * pow(max(dot(worldNormal, halfway), 0), gSpecularPower) * shadow * strength;
             }
         }
         else if (gSpotlights[i].isSpot == 0) // If not an actual spotlight light up the remaining area
