@@ -340,7 +340,7 @@ bool InitScene()
 
     gModels[18] = &gNormalCube;
 
-    // Light set-up
+    //// Set up lights ////
     int lightIndex = 0;
     for (int i = 0; i < NUM_SPOTLIGHTS; ++i)
     {
@@ -366,11 +366,10 @@ bool InitScene()
     gSpotlights[0].model->SetPosition({ 30, 15, 0 });
     gSpotlights[0].model->FaceTarget(gTeapot.model->Position());
 
-
     // Far light
     gSpotlights[1].colour = { 1.0f, 0.8f, 0.2f };
-    gSpotlights[1].SetStrength(80);
-    gSpotlights[1].model->SetPosition({ -120, 270, 305 });
+    gSpotlights[1].SetStrength(60);
+    gSpotlights[1].model->SetPosition({ -120, 220, 265 });
     gSpotlights[1].model->FaceTarget({ 0, 0, -100 });
     gSpotlights[1].isSpot = false;
 
@@ -561,8 +560,27 @@ void RenderSceneFromCamera(Camera* camera)
         }
     }
 
-    gD3DContext->OMSetBlendState(gMultiplicativeBlendingState, nullptr, 0xffffff);
+    gD3DContext->OMSetBlendState(gScreenBlendingState, nullptr, 0xffffff);
+    for (int i = 0; i < NUM_MODELS; i++)
+    {
+        if (gModels[i]->renderMode == ScreenBlend)
+        {
+            gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
+            gModels[i]->model->Render();
+        }
+    }
 
+    gD3DContext->OMSetBlendState(gAlphaBlendingState, nullptr, 0xffffff);
+    for (int i = 0; i < NUM_MODELS; i++)
+    {
+        if (gModels[i]->renderMode == AlphBlend)
+        {
+            gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
+            gModels[i]->model->Render();
+        }
+    }
+
+    gD3DContext->OMSetBlendState(gMultiplicativeBlendingState, nullptr, 0xffffff);
     for (int i = 0; i < NUM_MODELS; i++)
     {
         if (gModels[i]->renderMode == MultBlend)
@@ -572,11 +590,10 @@ void RenderSceneFromCamera(Camera* camera)
         }
     }
 
-    gD3DContext->OMSetBlendState(gAlphaBlendingState, nullptr, 0xffffff);
-
+    gD3DContext->PSSetShader(gAlphaLightingPixelShader, nullptr, 0);
     for (int i = 0; i < NUM_MODELS; i++)
     {
-        if (gModels[i]->renderMode == AlphBlend)
+        if (gModels[i]->renderMode == MultBlendLight)
         {
             gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
             gModels[i]->model->Render();
