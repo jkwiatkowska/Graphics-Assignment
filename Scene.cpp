@@ -32,7 +32,7 @@
 //--------------------------------------------------------------------------------------
 
 // DirectX objects controlling textures used in this lab
-const int NUM_TEXTURES = 10;
+const int NUM_TEXTURES = 11;
 Texture* gTextures[NUM_TEXTURES];
 
 Texture gStoneTexture   = Texture("StoneDiffuseSpecular.dds");
@@ -45,6 +45,7 @@ Texture gTechTexture    = Texture("TechDiffuseSpecular.dds", "TechNormalHeight.d
 Texture gPatternTexture = Texture("PatternDiffuseSpecular.dds", "PatternNormalHeight.dds");
 Texture gMetalTexture   = Texture("MetalDiffuseSpecular.dds", "MetalNormal.dds");
 Texture gGrassTexture   = Texture("GrassDiffuseSpecular.dds");
+Texture gGlassTexture   = Texture("Glass.jpg");
 
 //--------------------------------------------------------------------------------------
 // Scene Data
@@ -66,7 +67,7 @@ Mesh* gSphereMesh;
 Mesh* gCubeMesh;
 Mesh* gTangentCubeMesh;
 
-const int NUM_MODELS = 19;
+const int NUM_MODELS = 20;
 SceneModel* gModels[NUM_MODELS];
 
 SceneModel gTeapot = SceneModel(&gStoneTexture);
@@ -79,6 +80,7 @@ const int NUM_BRICKS = 14;
 SceneModel gBricks[NUM_BRICKS];
 
 SceneModel gNormalCube = SceneModel(&gPatternTexture);
+SceneModel gBlendCube = SceneModel(&gGlassTexture);
 
 Camera* gCamera;
 
@@ -234,6 +236,7 @@ bool InitGeometry()
     gTextures[7] = &gPatternTexture;
     gTextures[8] = &gMetalTexture;
     gTextures[9] = &gGrassTexture;
+    gTextures[10] = &gGlassTexture;
     
     for (int i = 0; i < NUM_TEXTURES; i++)
     {
@@ -339,6 +342,15 @@ bool InitScene()
     gNormalCube.model->SetScale(0.8f);
 
     gModels[18] = &gNormalCube;
+
+    // Blend cube
+    gBlendCube.model = new Model(gCubeMesh);
+    gBlendCube.renderMode = AddBlendLight;
+    gBlendCube.model->SetPosition({ -10, 6.1f, 50 });
+    gBlendCube.model->SetRotation({ 0, -2, 0 });
+    gBlendCube.model->SetScale(1.2f);
+    
+    gModels[19] = &gBlendCube;
 
     //// Set up lights ////
     int lightIndex = 0;
@@ -550,20 +562,12 @@ void RenderSceneFromCamera(Camera* camera)
         gPointlights[i].model->Render();
     }
 
+    //// Render transparent objects ////
+
     gD3DContext->PSSetShader(gAlphaPixelShader, nullptr, 0);
     for (int i = 0; i < NUM_MODELS; i++)
     {
         if (gModels[i]->renderMode == AddBlend)
-        {
-            gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
-            gModels[i]->model->Render();
-        }
-    }
-
-    gD3DContext->OMSetBlendState(gScreenBlendingState, nullptr, 0xffffff);
-    for (int i = 0; i < NUM_MODELS; i++)
-    {
-        if (gModels[i]->renderMode == ScreenBlend)
         {
             gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
             gModels[i]->model->Render();
@@ -589,11 +593,13 @@ void RenderSceneFromCamera(Camera* camera)
             gModels[i]->model->Render();
         }
     }
-
+    
+    gD3DContext->VSSetShader(gDefaultVertexShader, nullptr, 0);
     gD3DContext->PSSetShader(gAlphaLightingPixelShader, nullptr, 0);
+    gD3DContext->OMSetBlendState(gAdditiveBlendingState, nullptr, 0xffffff);
     for (int i = 0; i < NUM_MODELS; i++)
     {
-        if (gModels[i]->renderMode == MultBlendLight)
+        if (gModels[i]->renderMode == AddBlendLight)
         {
             gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
             gModels[i]->model->Render();

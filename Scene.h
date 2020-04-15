@@ -16,10 +16,9 @@ enum RenderMode
 	NormalMap,
 	ParallaxMap,
 	AddBlend,
+	AddBlendLight,
 	MultBlend,
-	AlphBlend,
-	MultBlendLight,
-	ScreenBlend
+	AlphBlend
 };
 
 //--------------------------------------------------------------------------------------

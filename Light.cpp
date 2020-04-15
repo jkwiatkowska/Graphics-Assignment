@@ -70,6 +70,11 @@ void Spotlight::RenderDepthBufferFromLight(int numModels, SceneModel* models[])
     {
         if (models[i]->renderMode == Wiggle) models[i]->model->Render();
     }
+    gD3DContext->VSSetShader(gBasicTransformVertexShader, nullptr, 0);
+    for (int i = 0; i < numModels; i++)
+    {
+        if (models[i]->renderMode == AddBlendLight) models[i]->model->Render();
+    }
 }
 
 void Spotlight::RenderFromLightPOV(int numModels, SceneModel* models[])
