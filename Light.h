@@ -32,6 +32,10 @@ public:
     ID3D11DepthStencilView* shadowMapDepthStencil = nullptr; // This object is used when we want to render to the texture above **as a depth buffer**
     ID3D11ShaderResourceView* shadowMapSRV = nullptr; // This object is used to give shaders access to the texture above (SRV = shader resource view)
 
+    ID3D11Texture2D* colourMapTexture = nullptr;
+    ID3D11RenderTargetView* colourMapRenderTarget = nullptr;
+    ID3D11ShaderResourceView* colourMapSRV = nullptr;
+
     Spotlight()
     {
 
@@ -42,6 +46,7 @@ public:
     CVector3 GetFacing();
 
     void RenderFromLightPOV(int numModels, SceneModel* models[]);
+    void RenderColourMap(int numModels, SceneModel* models[]);
 
     CMatrix4x4 CalculateLightViewMatrix();
     CMatrix4x4 CalculateLightProjectionMatrix();

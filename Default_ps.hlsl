@@ -6,6 +6,7 @@
 Texture2D DiffuseSpecularMap : register(t0);
 
 Texture2D ShadowMap[15]      : register(t10);
+Texture2D ColourMap[15]      : register(t30);
 
 SamplerState TexSampler      : register(s0);
 SamplerState PointClamp      : register(s1);
@@ -21,7 +22,7 @@ float4 main(LightingPixelShaderInput input) : SV_Target
 	// Calculate lighting
 	float3 diffuseLight;
 	float3 specularLight;
-	CalculateLighting(ShadowMap, input.worldPosition, input.worldNormal, PointClamp, diffuseLight, specularLight);
+	CalculateLighting(ShadowMap, input.worldPosition, input.worldNormal, PointClamp, diffuseLight, specularLight, ColourMap, true);
 
 	////////////////////
 	// Combine lighting and textures

@@ -133,17 +133,16 @@ cbuffer PerModelConstants : register(b1) // The b1 gives this constant buffer th
     float    padding6;  // See notes on padding in structure above
 } 
 
-float SmoothSample(Texture2D map, SamplerState PointClamp, float2 uv, float compare, float2 uvOffset = (0, 0))
+float ShadowMapSample(Texture2D map, SamplerState PointClamp, float2 uv, float compare)
 {   float2 offset;
     float strength = 0;
-    float maxStrength = 0;
     [unroll(5)] for (int j = -2; j < 3; j++)
     {
         [unroll(9)] for (int k = -3; k < 4; k++)
         {
             offset.x = j * 0.00012f;
             offset.y = k * 0.00008f;
-            if (compare < map.Sample(PointClamp, uv + offset + uvOffset).r)
+            if (compare < map.Sample(PointClamp, uv + offset).r)
             {
                 strength += 0.0222222222f;
             }
@@ -152,7 +151,24 @@ float SmoothSample(Texture2D map, SamplerState PointClamp, float2 uv, float comp
     return strength;
 }
 
-void CalculateLighting(Texture2D ShadowMap[15], float3 worldPosition, float3 worldNormal, SamplerState PointClamp, out float3 diffuseLight, out float3 specularLight, float2 offsetCoord = (0, 0))
+float3 ColourMapSample(Texture2D map, SamplerState PointClamp, float2 uv)
+{
+    float2 offset;
+    float3 colour = 0;
+    [unroll(5)] for (int j = -2; j < 3; j++)
+    {
+        [unroll(9)] for (int k = -3; k < 4; k++)
+        {
+            offset.x = j * 0.00012f;
+            offset.y = k * 0.00008f;
+            colour += 0.0222222222f * map.Sample(PointClamp, uv + offset);
+        }
+    }
+    return colour;
+}
+
+void CalculateLighting(Texture2D ShadowMap[15], float3 worldPosition, float3 worldNormal, SamplerState PointClamp, out float3 diffuseLight, out float3 specularLight,
+    Texture2D ColourMap[15], bool shadowColour = false)
 {
     diffuseLight = gAmbientColour;
     specularLight = 0;
@@ -179,7 +195,7 @@ void CalculateLighting(Texture2D ShadowMap[15], float3 worldPosition, float3 wor
 
             float depthFromLight = lightProjection.z / lightProjection.w;
 
-            float strength = SmoothSample(ShadowMap[i], PointClamp, shadowMapUV, depthFromLight);
+            float strength = ShadowMapSample(ShadowMap[i], PointClamp, shadowMapUV, depthFromLight);
 
             if (strength > 0)
             {
@@ -187,7 +203,15 @@ void CalculateLighting(Texture2D ShadowMap[15], float3 worldPosition, float3 wor
                 if (gSpotlights[i].isSpot == 0) lightDist = 150; // Set value for fake directional light
                 else lightDist = length(gSpotlights[i].position - worldPosition);
 
-                diffuseLight += (gSpotlights[i].colour * max(dot(worldNormal, lightDirection), 0) / lightDist) * strength;
+                float3 colour = (gSpotlights[i].colour * max(dot(worldNormal, lightDirection), 0) / lightDist);
+                if (strength == 1 && shadowColour)
+                {
+                    //colour *= (ColourMapSample(ColourMap[i], PointClamp, shadowMapUV));
+                    colour = ColourMap[i].Sample(PointClamp, shadowMapUV);
+                }
+                colour *= strength;
+                colour = ColourMap[i].Sample(PointClamp, shadowMapUV);
+                diffuseLight += colour;
 
                 float3 halfway = normalize(lightDirection + cameraDirection);
                 specularLight += diffuseLight * pow(max(dot(worldNormal, halfway), 0), gSpecularPower) * strength;

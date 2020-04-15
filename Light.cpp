@@ -1,5 +1,7 @@
 #include "Light.h"
 
+const FLOAT gWhite[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+
 void Light::SetStrength(float newStrength)
 {
     strength = newStrength;
@@ -47,7 +49,6 @@ void Spotlight::RenderDepthBufferFromLight(int numModels, SceneModel* models[])
     gD3DContext->VSSetConstantBuffers(0, 1, &gPerFrameConstantBuffer); // First parameter must match constant buffer number in the shader 
     gD3DContext->PSSetConstantBuffers(0, 1, &gPerFrameConstantBuffer);
 
-
     //// Only render models that cast shadows ////
 
     // Use special depth-only rendering shaders
@@ -70,7 +71,24 @@ void Spotlight::RenderDepthBufferFromLight(int numModels, SceneModel* models[])
     {
         if (models[i]->renderMode == Wiggle) models[i]->model->Render();
     }
+    /*gD3DContext->VSSetShader(gBasicTransformVertexShader, nullptr, 0);
+    for (int i = 0; i < numModels; i++)
+    {
+        if (models[i]->renderMode == AddBlendLight) models[i]->model->Render();
+    }*/
+}
+
+void Spotlight::RenderColourMap(int numModels, SceneModel* models[])
+{
     gD3DContext->VSSetShader(gBasicTransformVertexShader, nullptr, 0);
+    gD3DContext->PSSetShader(gAlphaPixelShader, nullptr, 0);
+
+    // States - no blending, normal depth buffer and culling
+    gD3DContext->OMSetBlendState(gMultiplicativeBlendingState, nullptr, 0xffffff);
+    gD3DContext->OMSetDepthStencilState(gDepthReadOnlyState, 0);
+    gD3DContext->RSSetState(gCullNoneState);
+
+    // Render models - no state changes required between each object in this situation (no textures used in this step)
     for (int i = 0; i < numModels; i++)
     {
         if (models[i]->renderMode == AddBlendLight) models[i]->model->Render();
@@ -98,6 +116,12 @@ void Spotlight::RenderFromLightPOV(int numModels, SceneModel* models[])
 
     // Render the scene from the point of view of light (only depth values written)
     RenderDepthBufferFromLight(numModels, models);
+
+    // Create colour map
+    gD3DContext->OMSetRenderTargets(1, &colourMapRenderTarget, nullptr);
+    gD3DContext->ClearRenderTargetView(nullptr, gWhite);
+
+    RenderColourMap(numModels, models);
 }
 
 void Pointlight::SetBuffer()

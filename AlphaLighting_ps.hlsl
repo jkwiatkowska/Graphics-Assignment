@@ -21,7 +21,7 @@ float4 main(LightingPixelShaderInput input) : SV_Target
 	// Calculate lighting
 	float3 diffuseLight;
 	float3 specularLight;
-	CalculateLighting(ShadowMap, input.worldPosition, input.worldNormal, PointClamp, diffuseLight, specularLight);
+	CalculateLighting(ShadowMap, input.worldPosition, input.worldNormal, PointClamp, diffuseLight, specularLight, ShadowMap);
 
 	////////////////////
 	// Combine lighting and textures

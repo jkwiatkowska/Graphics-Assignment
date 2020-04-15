@@ -46,6 +46,7 @@ Texture gPatternTexture = Texture("PatternDiffuseSpecular.dds", "PatternNormalHe
 Texture gMetalTexture   = Texture("MetalDiffuseSpecular.dds", "MetalNormal.dds");
 Texture gGrassTexture   = Texture("GrassDiffuseSpecular.dds");
 Texture gGlassTexture   = Texture("Glass.jpg");
+Texture gPortalTexture  = Texture("");
 
 //--------------------------------------------------------------------------------------
 // Scene Data
@@ -66,8 +67,9 @@ Mesh* gLightMesh;
 Mesh* gSphereMesh;
 Mesh* gCubeMesh;
 Mesh* gTangentCubeMesh;
+Mesh* gPortalMesh;
 
-const int NUM_MODELS = 20;
+const int NUM_MODELS = 21;
 SceneModel* gModels[NUM_MODELS];
 
 SceneModel gTeapot = SceneModel(&gStoneTexture);
@@ -81,6 +83,8 @@ SceneModel gBricks[NUM_BRICKS];
 
 SceneModel gNormalCube = SceneModel(&gPatternTexture);
 SceneModel gBlendCube = SceneModel(&gGlassTexture);
+
+SceneModel gPortal(&gPortalTexture);
 
 Camera* gCamera;
 
@@ -141,6 +145,7 @@ bool InitGeometry()
         gSphereMesh      = new Mesh("Sphere.x");
         gCubeMesh        = new Mesh("Cube.x");
         gTangentCubeMesh = new Mesh("Cube.x", true);
+        gPortalMesh      = new Mesh("Portal.x");
     }
     catch (std::runtime_error e)  // Constructors cannot return error messages so use exceptions to catch mesh errors (fairly standard approach this)
     {
@@ -205,6 +210,34 @@ bool InitGeometry()
         if (FAILED(gD3DDevice->CreateShaderResourceView(gSpotlights[i].shadowMapTexture, &srvDesc, &gSpotlights[i].shadowMapSRV)))
         {
             gLastError = "Error creating shadow map shader resource view";
+            return false;
+        }
+    }
+
+    // Colour maps
+    textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    textureDesc.BindFlags = D3D10_BIND_RENDER_TARGET | D3D10_BIND_SHADER_RESOURCE; // IMPORTANT: Indicate we will use texture as render target, and pass it to shaders
+    for (int i = 0; i < NUM_SPOTLIGHTS; i++)
+    {
+        if (FAILED(gD3DDevice->CreateTexture2D(&textureDesc, NULL, &gSpotlights[i].colourMapTexture)))
+        {
+            gLastError = "Error creating shadow map texture";
+            return false;
+        }
+
+        if (FAILED(gD3DDevice->CreateRenderTargetView(gSpotlights[i].colourMapTexture, NULL, &gSpotlights[i].colourMapRenderTarget)))
+        {
+            gLastError = "Error creating colour map render target view";
+            return false;
+        }
+    }
+
+    srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    for (int i = 0; i < NUM_SPOTLIGHTS; i++)
+    {
+        if (FAILED(gD3DDevice->CreateShaderResourceView(gSpotlights[i].colourMapTexture, &srvDesc, &gSpotlights[i].colourMapSRV)))
+        {
+            gLastError = "Error creating colour map shader resource view";
             return false;
         }
     }
@@ -352,6 +385,14 @@ bool InitScene()
     
     gModels[19] = &gBlendCube;
 
+    // Portal
+    gPortal.model = new Model(gPortalMesh);
+    gPortal.model->SetPosition({ -20, 15, 70 });
+    gPortal.model->SetRotation({ 0, 40, 0 });
+    gPortal.renderMode = Default;
+
+    gModels[20] = &gPortal;
+
     //// Set up lights ////
     int lightIndex = 0;
     for (int i = 0; i < NUM_SPOTLIGHTS; ++i)
@@ -384,6 +425,8 @@ bool InitScene()
     gSpotlights[1].model->SetPosition({ -120, 220, 265 });
     gSpotlights[1].model->FaceTarget({ 0, 0, -100 });
     gSpotlights[1].isSpot = false;
+
+    gPortalTexture.diffuseSpecularMapSRV = gSpotlights[1].colourMapSRV;
 
     // Flickering light
     gPointlights[0].colour = { 0.2f, 0.7f, 1.0f };
@@ -671,13 +714,16 @@ void RenderScene()
     // we might arrange things differently
 
     ID3D11ShaderResourceView* shadowMaps[NUM_SPOTLIGHTS];
+    ID3D11ShaderResourceView* colourMaps[NUM_SPOTLIGHTS];
     
     for (int i = 0; i < NUM_SPOTLIGHTS; i++)
     {
         shadowMaps[i] = gSpotlights[i].shadowMapSRV;
+        colourMaps[i] = gSpotlights[i].colourMapSRV;
     }
 
-    gD3DContext->PSSetShaderResources(10, NUM_SPOTLIGHTS, shadowMaps);
+    gD3DContext->PSSetShaderResources(30, NUM_SPOTLIGHTS, shadowMaps);
+    gD3DContext->PSSetShaderResources(10, NUM_SPOTLIGHTS, colourMaps);
     gD3DContext->PSSetSamplers(1, 1, &gPointSampler);
 
     // Render the scene for the main window
@@ -687,15 +733,19 @@ void RenderScene()
     for (unsigned int i = 0; i < NUM_SPOTLIGHTS; i++)
     {
         shadowMaps[i] = nullptr;
+        colourMaps[i] = nullptr;
     }
 
     gD3DContext->PSSetShaderResources(10, NUM_SPOTLIGHTS, shadowMaps);
+    gD3DContext->PSSetShaderResources(30, NUM_SPOTLIGHTS, colourMaps);
 
     //*****************************//
     // Temporary demonstration code for visualising the light's view of the scene
     //ColourRGBA white = {1,1,1};
     //gD3DContext->ClearRenderTargetView(gBackBufferRenderTarget, &white.r);
     //gSpotlights[0].RenderDepthBufferFromLight(NUM_MODELS, gModels);
+    //gD3DContext->ClearRenderTargetView(gBackBufferRenderTarget, &white.r);
+    //gSpotlights[0].RenderColourMap(NUM_MODELS, gModels);
     //*****************************//
 
 
