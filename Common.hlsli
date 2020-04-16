@@ -214,7 +214,7 @@ void CalculateLighting(Texture2D ShadowMap[15], float3 worldPosition, float3 wor
         }
         else if (gSpotlights[i].isSpot == 0) // If not an actual spotlight light up the remaining area
         {
-            diffuseLight += (gSpotlights[i].colour * max(dot(worldNormal, lightDirection), 0) / 200);
+            diffuseLight += (gSpotlights[i].colour * max(dot(worldNormal, lightDirection), 0) / 250);
 
             float3 halfway = normalize(lightDirection + cameraDirection);
             specularLight += diffuseLight * pow(max(dot(worldNormal, halfway), 0), gSpecularPower);

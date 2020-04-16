@@ -7,15 +7,46 @@ __declspec(selectany) extern const int gShadowMapSize = 4096; // Dimensions of s
 class Light : public SceneModel
 {
 public:
+    // Basic information
     CVector3 colour;
     float    strength;
+
+    // Flickering
+    bool flicker;
+    float flickerTime = 1.2f;
+    float strengthMax;
+    float currentStrength;
+    bool flickerDown = true;
+
+    // Colour change
+    bool colourChange = false;
+    CVector3 colours[7]
+    {
+        { 1.0f,  0.0f, 0.24f },
+        { 1.0f,  0.4f, 0.0f  },
+        { 0.9f,  1.0f, 0.0f  },
+        { 0.0f,  1.0f, 0.58f },
+        { 0.0f,  1.0f, 1.0f  },
+        { 0.0f,  0.5f, 1.0f  },
+        { 0.83f, 0.0f, 1.0f  }
+    };
+    int lastColour = 6;
+    float colourSpeed = 1;
+    int currentColour = 0;
+    int nextColour = 1;
+    float colourProgress = 0;
 
     Light()
     {
 
     }
 
-    void SetStrength(float newStrength);
+    virtual void SetStrength(float newStrength);
+
+    void MakeFlicker();
+    void MakeRainbow();
+
+    void Update(float frameTime);
 };
 
 // Spotlight class with shadows

@@ -8,6 +8,59 @@ void Light::SetStrength(float newStrength)
     model->SetScale(pow(strength, 0.7f));
 }
 
+void Light::MakeFlicker()
+{
+    flicker = true;
+    strengthMax = strength;
+    currentStrength = strength;
+}
+
+void Light::MakeRainbow()
+{
+    colourChange = true;
+}
+
+void Light::Update(float frameTime)
+{
+    // Flickering
+    if (flicker)
+    {
+        if (flickerDown)
+        {
+            currentStrength -= frameTime * strengthMax / flickerTime;
+            if (currentStrength < 0)
+            {
+                currentStrength = 0;
+                flickerDown = false;
+            }
+        }
+        else
+        {
+            currentStrength += frameTime * strengthMax / flickerTime;
+            if (currentStrength > strengthMax)
+            {
+                currentStrength = strengthMax;
+                flickerDown = true;
+            }
+        }
+
+        SetStrength(currentStrength);
+    }
+
+    if (colourChange)
+    {
+        colourProgress += colourSpeed * frameTime;
+        if (colourProgress > 1)
+        {
+            colourProgress -= 1.0f;
+            currentColour = nextColour;
+            nextColour++;
+            if (nextColour > lastColour) nextColour = 0;
+        }
+        colour = colourProgress * colours[nextColour] + (1 - colourProgress) * colours[currentColour];
+    }
+}
+
 void Spotlight::SetBuffer()
 {
     buffer.colour = colour * strength;

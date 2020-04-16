@@ -69,8 +69,9 @@ Mesh* gSphereMesh;
 Mesh* gCubeMesh;
 Mesh* gTangentCubeMesh;
 Mesh* gQuadMesh;
+Mesh* gBuildingMesh;
 
-const int NUM_MODELS = 24;
+const int NUM_MODELS = 25;
 SceneModel* gModels[NUM_MODELS];
 
 SceneModel gTeapot = SceneModel(&gStoneTexture);
@@ -89,13 +90,15 @@ SceneModel gPortal(&gPortalTexture);
 
 SceneModel gDecal[3];
 
+SceneModel gBuilding = SceneModel(&gTechTexture);
+
 Camera* gCamera;
 
 // Lights
 const int NUM_SPOTLIGHTS = 3;
 const int MAX_SPOTLIGHTS = 15;
 
-const int NUM_POINTLIGHTS = 1;
+const int NUM_POINTLIGHTS = 2;
 const int MAX_POINTLIGHTS = 25;
 
 const int NUM_LIGHTS = NUM_SPOTLIGHTS + NUM_POINTLIGHTS;
@@ -149,6 +152,7 @@ bool InitGeometry()
         gCubeMesh        = new Mesh("Cube.x");
         gTangentCubeMesh = new Mesh("Cube.x", true);
         gQuadMesh        = new Mesh("Portal.x");
+        gBuildingMesh    = new Mesh("Building03.x");
     }
     catch (std::runtime_error e)  // Constructors cannot return error messages so use exceptions to catch mesh errors (fairly standard approach this)
     {
@@ -374,7 +378,7 @@ bool InitScene()
     // Normal mapping cube
     gNormalCube.model = new Model(gTangentCubeMesh);
     gNormalCube.renderMode = NormalMap;
-    gNormalCube.model->SetPosition({ -20, 4, 35 });
+    gNormalCube.model->SetPosition({ -20, 4, 10 });
     gNormalCube.model->SetRotation({ 0, -70, 0 });
     gNormalCube.model->SetScale(0.8f);
 
@@ -383,7 +387,7 @@ bool InitScene()
     // Glass cube
     gGlassCube.model = new Model(gCubeMesh);
     gGlassCube.renderMode = AddBlendLight;
-    gGlassCube.model->SetPosition({ -10, 6.1f, 50 });
+    gGlassCube.model->SetPosition({ -4, 6.1f, 30 });
     gGlassCube.model->SetRotation({ 0, -2, 0 });
     gGlassCube.model->SetScale(1.2f);
     
@@ -411,6 +415,14 @@ bool InitScene()
     gDecal[1].model->SetPosition({ 40, 10, 124.8f });    // Tank
     gDecal[0].model->SetPosition({ 28.4f, 14, 124.8f }); // Acorn
     gDecal[0].model->SetScale({ 0.25f, 0.3f, 1 });
+
+    // Building
+    gBuilding.model = new Model(gBuildingMesh);
+    gBuilding.model->SetPosition({ -70, 0, 105 });
+    gBuilding.model->SetRotation({ 0, -2, 0 });
+    gBuilding.model->SetScale(0.7f);
+
+    gModels[24] = &gBuilding;
 
     //// Set up lights ////
     int lightIndex = 0;
@@ -449,21 +461,22 @@ bool InitScene()
 
     // Colour changing light
     gSpotlights[2].colour = { 1.0f, 0.0f, 0.24f };
-    gSpotlights[2].SetStrength(40);
-    gSpotlights[2].model->SetPosition({ -35, 6.1f, 34 });
+    gSpotlights[2].SetStrength(45);
+    gSpotlights[2].model->SetPosition({ -20, 5, 30 });
     gSpotlights[2].model->FaceTarget(gGlassCube.model->Position());
+    gSpotlights[2].MakeRainbow();
 
-    // Flickering light
+    // Flickering lights
     gPointlights[0].colour = { 0.2f, 0.7f, 1.0f };
     gPointlights[0].SetStrength(25);
-    gPointlights[0].model->SetPosition({ 20, 18, 19 });
+    gPointlights[0].model->SetPosition({ 20, 25, 40 });
     gPointlights[0].model->FaceTarget(gCamera->Position());
+    gPointlights[0].MakeFlicker();
 
-    // Colour changing light
-//    gPointlights[1].colour = { 1.0f, 0.0f, 0.24f };
-//    gPointlights[1].SetStrength(20);
-//    gPointlights[1].model->SetPosition({ -20, 18, 10 });
-//    gPointlights[1].model->FaceTarget(gCamera->Position());
+    gPointlights[1].colour = { 0.9f, 0.1f, 0.5f };
+    gPointlights[1].SetStrength(10);
+    gPointlights[1].model->SetPosition({ -72, 100, 102.5f });
+    gPointlights[1].MakeFlicker();
 
     return true;
 }
@@ -788,56 +801,11 @@ void RenderScene()
 // Update models and camera. frameTime is the time passed since the last frame
 void UpdateScene(float frameTime)
 {
-    // Flickering light
-    const float flickerSpeed = 16;
-    static const float strengthMax = gPointlights[0].strength;
-    static float currentStrength = gPointlights[0].strength;
-    static bool flickerDown = true;
-    if (flickerDown)
+    // Light effects
+    for (int i = 0; i < NUM_POINTLIGHTS; i++)
     {
-        currentStrength -= frameTime * flickerSpeed;
-        if (currentStrength < 0)
-        {
-            currentStrength = 0;
-            flickerDown = false;
-        }
+        gPointlights[i].Update(frameTime);
     }
-    else
-    {
-        currentStrength += frameTime * flickerSpeed;
-        if (currentStrength > strengthMax)
-        {
-            currentStrength = strengthMax;
-            flickerDown = true;
-        }
-    }
-    gPointlights[0].SetStrength(currentStrength);
-
-    // Colour changing light
-    const CVector3 rainbow[7]
-    {
-        { 1.0f,  0.0f, 0.24f },
-        { 1.0f,  0.4f, 0.0f  },
-        { 0.9f,  1.0f, 0.0f  },
-        { 0.0f,  1.0f, 0.58f },
-        { 0.0f,  1.0f, 1.0f  },
-        { 0.0f,  0.5f, 1.0f  },
-        { 0.83f, 0.0f, 1.0f  }
-    };
-    const float colourSpeed = 1;
-    static int currentColour = 0;
-    static int nextColour = 1;
-    static float colourProgress = 0;
-
-    colourProgress += colourSpeed * frameTime;
-    if (colourProgress > 1)
-    {
-        colourProgress -= 1.0f;
-        currentColour = nextColour;
-        nextColour++;
-        if (nextColour > 6) nextColour = 0;
-    }
-    gSpotlights[2].colour = colourProgress * rainbow[nextColour] + (1 - colourProgress) * rainbow[currentColour];
 
     // Wiggle effect
     static float wiggle = 0;
