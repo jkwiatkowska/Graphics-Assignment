@@ -71,11 +71,6 @@ void Spotlight::RenderShadowMap(int numModels, SceneModel* models[])
     {
         if (models[i]->renderMode == Wiggle) models[i]->model->Render();
     }
-    /*gD3DContext->VSSetShader(gBasicTransformVertexShader, nullptr, 0);
-    for (int i = 0; i < numModels; i++)
-    {
-        if (models[i]->renderMode == AddBlendLight) models[i]->model->Render();
-    }*/
 }
 
 void Spotlight::RenderColourMap(int numModels, SceneModel* models[])
@@ -90,19 +85,24 @@ void Spotlight::RenderColourMap(int numModels, SceneModel* models[])
     gD3DContext->VSSetConstantBuffers(0, 1, &gPerFrameConstantBuffer); // First parameter must match constant buffer number in the shader 
     gD3DContext->PSSetConstantBuffers(0, 1, &gPerFrameConstantBuffer);
 
-    // Shaders
-    gD3DContext->VSSetShader(gBasicTransformVertexShader, nullptr, 0);
-    gD3DContext->PSSetShader(gAlphaPixelShader, nullptr, 0);
-
+    /// Transparent models ///
     // States - no blending, normal depth buffer and culling
     gD3DContext->OMSetBlendState(gMultiplicativeBlendingState, nullptr, 0xffffff);
     gD3DContext->OMSetDepthStencilState(gDepthReadOnlyState, 0);
     gD3DContext->RSSetState(gCullNoneState);
 
-    // Render models - no state changes required between each object in this situation (no textures used in this step)
+    // Shaders
+    gD3DContext->VSSetShader(gBasicTransformVertexShader, nullptr, 0);
+    gD3DContext->PSSetShader(gAlphaPixelShader, nullptr, 0);
+
+    // Render models
     for (int i = 0; i < numModels; i++)
     {
-        if (models[i]->renderMode == AddBlendLight) models[i]->model->Render();
+        if (models[i]->renderMode == AddBlendLight)
+        {
+            gD3DContext->PSSetShaderResources(0, 1, &models[i]->texture->diffuseSpecularMapSRV);
+            models[i]->model->Render();
+        }
     }
 }
 
@@ -129,7 +129,7 @@ void Spotlight::RenderFromLightPOV(int numModels, SceneModel* models[])
     RenderShadowMap(numModels, models);
 
     // Create colour map
-    gD3DContext->OMSetRenderTargets(1, &colourMapRenderTarget, nullptr);
+    gD3DContext->OMSetRenderTargets(1, &colourMapRenderTarget, shadowMapDepthStencil);
     gD3DContext->ClearRenderTargetView(colourMapRenderTarget, gWhite);
 
     RenderColourMap(numModels, models);

@@ -32,21 +32,22 @@
 //--------------------------------------------------------------------------------------
 
 // DirectX objects controlling textures used in this lab
-const int NUM_TEXTURES = 11;
+const int NUM_TEXTURES = 14;
 Texture* gTextures[NUM_TEXTURES];
 
-Texture gStoneTexture   = Texture("StoneDiffuseSpecular.dds");
-Texture gCrateTexture   = Texture("CargoA.dds");
-Texture gGroundTexture  = Texture("CobbleDiffuseSpecular.dds", "CobbleNormalHeight.dds");
-Texture gLightTexture   = Texture("Flare.jpg");
-Texture gWoodTexture    = Texture("WoodDiffuseSpecular.dds", "WoodNormal.dds");
-Texture gWallTexture    = Texture("WallDiffuseSpecular.dds", "WallNormalHeight.dds");
-Texture gTechTexture    = Texture("TechDiffuseSpecular.dds", "TechNormalHeight.dds");
-Texture gPatternTexture = Texture("PatternDiffuseSpecular.dds", "PatternNormalHeight.dds");
-Texture gMetalTexture   = Texture("MetalDiffuseSpecular.dds", "MetalNormal.dds");
-Texture gGrassTexture   = Texture("GrassDiffuseSpecular.dds");
-Texture gGlassTexture   = Texture("Glass.jpg");
-Texture gPortalTexture  = Texture("");
+Texture gStoneTexture    = Texture("StoneDiffuseSpecular.dds");
+Texture gCrateTexture    = Texture("CargoA.dds");
+Texture gGroundTexture   = Texture("CobbleDiffuseSpecular.dds", "CobbleNormalHeight.dds");
+Texture gLightTexture    = Texture("Flare.jpg");
+Texture gWoodTexture     = Texture("WoodDiffuseSpecular.dds", "WoodNormal.dds");
+Texture gWallTexture     = Texture("WallDiffuseSpecular.dds", "WallNormalHeight.dds");
+Texture gTechTexture     = Texture("TechDiffuseSpecular.dds", "TechNormalHeight.dds");
+Texture gPatternTexture  = Texture("PatternDiffuseSpecular.dds", "PatternNormalHeight.dds");
+Texture gMetalTexture    = Texture("MetalDiffuseSpecular.dds", "MetalNormal.dds");
+Texture gGrassTexture    = Texture("GrassDiffuseSpecular.dds");
+Texture gGlassTexture    = Texture("Glass.jpg");
+Texture gPortalTexture   = Texture("");
+Texture gDecalTexture[3] = { Texture("acorn.png"), Texture("tank.png"), Texture("wizard.png") };
 
 //--------------------------------------------------------------------------------------
 // Scene Data
@@ -67,9 +68,9 @@ Mesh* gLightMesh;
 Mesh* gSphereMesh;
 Mesh* gCubeMesh;
 Mesh* gTangentCubeMesh;
-Mesh* gPortalMesh;
+Mesh* gQuadMesh;
 
-const int NUM_MODELS = 21;
+const int NUM_MODELS = 24;
 SceneModel* gModels[NUM_MODELS];
 
 SceneModel gTeapot = SceneModel(&gStoneTexture);
@@ -82,17 +83,19 @@ const int NUM_BRICKS = 14;
 SceneModel gBricks[NUM_BRICKS];
 
 SceneModel gNormalCube = SceneModel(&gPatternTexture);
-SceneModel gBlendCube = SceneModel(&gGlassTexture);
+SceneModel gGlassCube = SceneModel(&gGlassTexture);
 
 SceneModel gPortal(&gPortalTexture);
+
+SceneModel gDecal[3];
 
 Camera* gCamera;
 
 // Lights
-const int NUM_SPOTLIGHTS = 2;
+const int NUM_SPOTLIGHTS = 3;
 const int MAX_SPOTLIGHTS = 15;
 
-const int NUM_POINTLIGHTS = 2;
+const int NUM_POINTLIGHTS = 1;
 const int MAX_POINTLIGHTS = 25;
 
 const int NUM_LIGHTS = NUM_SPOTLIGHTS + NUM_POINTLIGHTS;
@@ -145,7 +148,7 @@ bool InitGeometry()
         gSphereMesh      = new Mesh("Sphere.x");
         gCubeMesh        = new Mesh("Cube.x");
         gTangentCubeMesh = new Mesh("Cube.x", true);
-        gPortalMesh      = new Mesh("Portal.x");
+        gQuadMesh        = new Mesh("Portal.x");
     }
     catch (std::runtime_error e)  // Constructors cannot return error messages so use exceptions to catch mesh errors (fairly standard approach this)
     {
@@ -270,6 +273,7 @@ bool InitGeometry()
     gTextures[8] = &gMetalTexture;
     gTextures[9] = &gGrassTexture;
     gTextures[10] = &gGlassTexture;
+    for (int i = 0; i < 3; i++) gTextures[11 + i] = &gDecalTexture[i];
     
     for (int i = 0; i < NUM_TEXTURES; i++)
     {
@@ -376,22 +380,37 @@ bool InitScene()
 
     gModels[18] = &gNormalCube;
 
-    // Blend cube
-    gBlendCube.model = new Model(gCubeMesh);
-    gBlendCube.renderMode = AddBlendLight;
-    gBlendCube.model->SetPosition({ -10, 6.1f, 50 });
-    gBlendCube.model->SetRotation({ 0, -2, 0 });
-    gBlendCube.model->SetScale(1.2f);
+    // Glass cube
+    gGlassCube.model = new Model(gCubeMesh);
+    gGlassCube.renderMode = AddBlendLight;
+    gGlassCube.model->SetPosition({ -10, 6.1f, 50 });
+    gGlassCube.model->SetRotation({ 0, -2, 0 });
+    gGlassCube.model->SetScale(1.2f);
     
-    gModels[19] = &gBlendCube;
+    gModels[19] = &gGlassCube;
 
     // Portal
-    gPortal.model = new Model(gPortalMesh);
+    gPortal.model = new Model(gQuadMesh);
     gPortal.model->SetPosition({ -20, 15, 70 });
     gPortal.model->SetRotation({ 0, 40, 0 });
     gPortal.renderMode = None;
 
     gModels[20] = &gPortal;
+
+    //Decals
+    for (int i = 0; i < 3; i++)
+    {
+        gDecal[i] = SceneModel(&gDecalTexture[i]);
+        gDecal[i].model = new Model(gQuadMesh);
+        gDecal[i].model->SetScale({ 0.24f, 0.4f, 1 });
+;       gDecal[i].renderMode = AlphBlend;
+
+        gModels[21 + i] = &gDecal[i];
+    }
+    gDecal[2].model->SetPosition({ 18, 9, 124.8f });     // Wizard 
+    gDecal[1].model->SetPosition({ 40, 10, 124.8f });    // Tank
+    gDecal[0].model->SetPosition({ 28.4f, 14, 124.8f }); // Acorn
+    gDecal[0].model->SetScale({ 0.25f, 0.3f, 1 });
 
     //// Set up lights ////
     int lightIndex = 0;
@@ -421,12 +440,18 @@ bool InitScene()
 
     // Far light
     gSpotlights[1].colour = { 1.0f, 0.8f, 0.2f };
-    gSpotlights[1].SetStrength(60);
+    gSpotlights[1].SetStrength(70);
     gSpotlights[1].model->SetPosition({ -120, 220, 265 });
     gSpotlights[1].model->FaceTarget({ 0, 0, -100 });
     gSpotlights[1].isSpot = false;
 
     gPortalTexture.diffuseSpecularMapSRV = gSpotlights[1].colourMapSRV;
+
+    // Colour changing light
+    gSpotlights[2].colour = { 1.0f, 0.0f, 0.24f };
+    gSpotlights[2].SetStrength(40);
+    gSpotlights[2].model->SetPosition({ -35, 6.1f, 34 });
+    gSpotlights[2].model->FaceTarget(gGlassCube.model->Position());
 
     // Flickering light
     gPointlights[0].colour = { 0.2f, 0.7f, 1.0f };
@@ -435,10 +460,10 @@ bool InitScene()
     gPointlights[0].model->FaceTarget(gCamera->Position());
 
     // Colour changing light
-    gPointlights[1].colour = { 1.0f, 0.0f, 0.24f };
-    gPointlights[1].SetStrength(20);
-    gPointlights[1].model->SetPosition({ -20, 18, 10 });
-    gPointlights[1].model->FaceTarget(gCamera->Position());
+//    gPointlights[1].colour = { 1.0f, 0.0f, 0.24f };
+//    gPointlights[1].SetStrength(20);
+//    gPointlights[1].model->SetPosition({ -20, 18, 10 });
+//    gPointlights[1].model->FaceTarget(gCamera->Position());
 
     return true;
 }
@@ -743,9 +768,9 @@ void RenderScene()
     // Temporary demonstration code for visualising the light's view of the scene
     //ColourRGBA white = {1,1,1};
     //gD3DContext->ClearRenderTargetView(gBackBufferRenderTarget, &white.r);
-    //gSpotlights[0].RenderDepthBufferFromLight(NUM_MODELS, gModels);
+    //gSpotlights[2].RenderShadowMap(NUM_MODELS, gModels);
     //gD3DContext->ClearRenderTargetView(gBackBufferRenderTarget, &white.r);
-    //gSpotlights[0].RenderColourMap(NUM_MODELS, gModels);
+    //gSpotlights[2].RenderColourMap(NUM_MODELS, gModels);
     //*****************************//
 
 
@@ -812,7 +837,7 @@ void UpdateScene(float frameTime)
         nextColour++;
         if (nextColour > 6) nextColour = 0;
     }
-    gPointlights[1].colour = colourProgress * rainbow[nextColour] + (1 - colourProgress) * rainbow[currentColour];
+    gSpotlights[2].colour = colourProgress * rainbow[nextColour] + (1 - colourProgress) * rainbow[currentColour];
 
     // Wiggle effect
     static float wiggle = 0;
