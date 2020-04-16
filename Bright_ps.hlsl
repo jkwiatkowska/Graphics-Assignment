@@ -28,7 +28,7 @@ float4 main(LightingPixelShaderInput input) : SV_Target
 	// Combine lighting and textures
 	float4 textureColour = DiffuseSpecularMap.Sample(TexSampler, input.uv);
 	float3 diffuseMaterialColour = textureColour.rgb;
-	float specularMaterialColour = textureColour.a;
+	float specularMaterialColour = textureColour.a * 0.7f;
 
 	// Increase light's effect
 	diffuseLight *= 1.3f;

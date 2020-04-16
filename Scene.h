@@ -18,6 +18,7 @@ enum RenderMode
 	ParallaxMap,	// Same as above but with parallax mapping added
 	AddBlend,		// Transparent object that uses additive blending, doesn't receive light or shadows
 	AddBlendLight,	// Similar to above, but receives and cass (cloured) shadows
+	Ghost,			// Same as above, but doesn't cast shadows
 	MultBlend,		// Transparent object rendered using multiplicative blending, no lighting
 	AlphBlend,		// Texture transparency is retained, no lighting
 	None			// Assign this to hide an object

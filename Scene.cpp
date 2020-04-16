@@ -32,12 +32,12 @@
 //--------------------------------------------------------------------------------------
 
 // DirectX objects controlling textures used in this lab
-const int NUM_TEXTURES = 14;
+const int NUM_TEXTURES = 15;
 Texture* gTextures[NUM_TEXTURES];
 
 Texture gStoneTexture    = Texture("StoneDiffuseSpecular.dds");
 Texture gCrateTexture    = Texture("CargoA.dds");
-Texture gGroundTexture   = Texture("CobbleDiffuseSpecular.dds", "CobbleNormalHeight.dds");
+Texture gCobbleTexture   = Texture("CobbleDiffuseSpecular.dds", "CobbleNormalHeight.dds");
 Texture gLightTexture    = Texture("Flare.jpg");
 Texture gWoodTexture     = Texture("WoodDiffuseSpecular.dds", "WoodNormal.dds");
 Texture gWallTexture     = Texture("WallDiffuseSpecular.dds", "WallNormalHeight.dds");
@@ -48,6 +48,7 @@ Texture gGrassTexture    = Texture("GrassDiffuseSpecular.dds");
 Texture gGlassTexture    = Texture("Glass.jpg");
 Texture gPortalTexture   = Texture("");
 Texture gDecalTexture[3] = { Texture("acorn.png"), Texture("tank.png"), Texture("wizard.png") };
+Texture gBuildingTexture = Texture("bld-mt.jpg");
 
 //--------------------------------------------------------------------------------------
 // Scene Data
@@ -66,31 +67,37 @@ Mesh* gCrateMesh;
 Mesh* gGroundMesh;
 Mesh* gLightMesh;
 Mesh* gSphereMesh;
+Mesh* gTangentSphereMesh;
 Mesh* gCubeMesh;
 Mesh* gTangentCubeMesh;
 Mesh* gQuadMesh;
 Mesh* gBuildingMesh;
+Mesh* gHillMesh;
 
-const int NUM_MODELS = 25;
+const int NUM_MODELS = 28;
 SceneModel* gModels[NUM_MODELS];
 
-SceneModel gTeapot = SceneModel(&gStoneTexture);
-SceneModel gCrate = SceneModel(&gCrateTexture);
-SceneModel gGround = SceneModel(&gGroundTexture);
+SceneModel gTeapot = SceneModel(&gStoneTexture);        // 0
+SceneModel gCrate = SceneModel(&gCrateTexture);         // 1
+SceneModel gGround = SceneModel(&gCobbleTexture);       // 2
 
-SceneModel gWiggleSphere = SceneModel(&gStoneTexture);
+SceneModel gWiggleSphere = SceneModel(&gStoneTexture);  // 3
 
 const int NUM_BRICKS = 14;
-SceneModel gBricks[NUM_BRICKS];
+SceneModel gBricks[NUM_BRICKS];                         // 4-17
 
-SceneModel gNormalCube = SceneModel(&gPatternTexture);
-SceneModel gGlassCube = SceneModel(&gGlassTexture);
+SceneModel gNormalCube = SceneModel(&gPatternTexture);  // 18
+SceneModel gGlassCube = SceneModel(&gGlassTexture);     // 19
 
-SceneModel gPortal(&gPortalTexture);
+SceneModel gPortal(&gPortalTexture);                    // 20
 
-SceneModel gDecal[3];
+SceneModel gDecal[3];                                   // 21-23
 
-SceneModel gBuilding = SceneModel(&gTechTexture);
+SceneModel gBuilding = SceneModel(&gTechTexture);       // 24
+SceneModel gBuilding2 = SceneModel(&gBuildingTexture);  // 25
+SceneModel gWoodSphere = SceneModel(&gWoodTexture);     // 26
+
+SceneModel gHill = SceneModel(&gGrassTexture);          // 27
 
 Camera* gCamera;
 
@@ -144,15 +151,17 @@ bool InitGeometry()
     // IMPORTANT NOTE: Will only keep the first object from the mesh - multipart objects will have parts missing - see later lab for more robust loader
     try 
     {
-        gTeapotMesh      = new Mesh("Teapot.x");
-        gCrateMesh       = new Mesh("CargoContainer.x");
-        gGroundMesh      = new Mesh("Ground.x", true);
-        gLightMesh       = new Mesh("Light.x");
-        gSphereMesh      = new Mesh("Sphere.x");
-        gCubeMesh        = new Mesh("Cube.x");
-        gTangentCubeMesh = new Mesh("Cube.x", true);
-        gQuadMesh        = new Mesh("Portal.x");
-        gBuildingMesh    = new Mesh("Building03.x");
+        gTeapotMesh         = new Mesh("Teapot.x");
+        gCrateMesh          = new Mesh("CargoContainer.x");
+        gGroundMesh         = new Mesh("Ground.x", true);
+        gLightMesh          = new Mesh("Light.x");
+        gSphereMesh         = new Mesh("Sphere.x");
+        gTangentSphereMesh  = new Mesh("Sphere.x", true);
+        gCubeMesh           = new Mesh("Cube.x");
+        gTangentCubeMesh    = new Mesh("Cube.x", true);
+        gQuadMesh           = new Mesh("Portal.x");
+        gBuildingMesh       = new Mesh("Building03.x");
+        gHillMesh           = new Mesh("Hills.x");
     }
     catch (std::runtime_error e)  // Constructors cannot return error messages so use exceptions to catch mesh errors (fairly standard approach this)
     {
@@ -266,18 +275,19 @@ bool InitGeometry()
     // The LoadTexture function requires you to pass a ID3D11Resource* (e.g. &gCubeDiffuseMap), which manages the GPU memory for the
     // texture and also a ID3D11ShaderResourceView* (e.g. &gCubeDiffuseMapSRV), which allows us to use the texture in shaders
     // The function will fill in these pointers with usable data. The variables used here are globals found near the top of the file.
-    gTextures[0] = &gStoneTexture;
-    gTextures[1] = &gCrateTexture;
-    gTextures[2] = &gGroundTexture;
-    gTextures[3] = &gLightTexture;
-    gTextures[4] = &gWoodTexture;
-    gTextures[5] = &gWallTexture;
-    gTextures[6] = &gTechTexture;
-    gTextures[7] = &gPatternTexture;
-    gTextures[8] = &gMetalTexture;
-    gTextures[9] = &gGrassTexture;
+    gTextures[0]  = &gStoneTexture;
+    gTextures[1]  = &gCrateTexture;
+    gTextures[2]  = &gCobbleTexture;
+    gTextures[3]  = &gLightTexture;
+    gTextures[4]  = &gWoodTexture;
+    gTextures[5]  = &gWallTexture;
+    gTextures[6]  = &gTechTexture;
+    gTextures[7]  = &gPatternTexture;
+    gTextures[8]  = &gMetalTexture;
+    gTextures[9]  = &gGrassTexture;
     gTextures[10] = &gGlassTexture;
-    for (int i = 0; i < 3; i++) gTextures[11 + i] = &gDecalTexture[i];
+    gTextures[11] = &gBuildingTexture;
+    for (int i = 0; i < 3; i++) gTextures[12 + i] = &gDecalTexture[i];
     
     for (int i = 0; i < NUM_TEXTURES; i++)
     {
@@ -387,7 +397,7 @@ bool InitScene()
     // Glass cube
     gGlassCube.model = new Model(gCubeMesh);
     gGlassCube.renderMode = AddBlendLight;
-    gGlassCube.model->SetPosition({ -4, 6.1f, 30 });
+    gGlassCube.model->SetPosition({ 1, 6.1f, 30 });
     gGlassCube.model->SetRotation({ 0, -2, 0 });
     gGlassCube.model->SetScale(1.2f);
     
@@ -416,15 +426,38 @@ bool InitScene()
     gDecal[0].model->SetPosition({ 28.4f, 14, 124.8f }); // Acorn
     gDecal[0].model->SetScale({ 0.25f, 0.3f, 1 });
 
-    // Building
+    // Buildings
     gBuilding.model = new Model(gBuildingMesh);
-    gBuilding.model->SetPosition({ -70, 0, 105 });
+    gBuilding.model->SetPosition({ -50, 0, 105 });
     gBuilding.model->SetRotation({ 0, -2, 0 });
     gBuilding.model->SetScale(0.7f);
     gBuilding.renderMode = Bright;
 
     gModels[24] = &gBuilding;
 
+    gBuilding2.model = new Model(gBuildingMesh);
+    gBuilding2.model->SetPosition({ -56, 0, 70 });
+    gBuilding2.model->SetRotation({ 0, 0, 0 });
+    gBuilding2.model->SetScale(0.7f);
+    gBuilding2.renderMode = Ghost;
+
+    gModels[25] = &gBuilding2;
+
+    // Wood sphere
+    gWoodSphere.model = new Model(gTangentSphereMesh);
+    gWoodSphere.model->SetPosition({ 15, 3, 34 });
+    gWoodSphere.model->SetScale(0.3f);
+    gWoodSphere.renderMode = NormalMap;
+
+    gModels[26] = &gWoodSphere;
+
+    // Hill
+    gHill.model = new Model(gHillMesh);
+    gHill.model->SetScale(3.5f);
+    gHill.model->SetPosition({ -65, -15, -20 });
+    
+    gModels[27] = &gHill;
+    
     //// Set up lights ////
     int lightIndex = 0;
     for (int i = 0; i < NUM_SPOTLIGHTS; ++i)
@@ -463,20 +496,20 @@ bool InitScene()
     // Colour changing light
     gSpotlights[2].colour = { 1.0f, 0.0f, 0.24f };
     gSpotlights[2].SetStrength(45);
-    gSpotlights[2].model->SetPosition({ -20, 5, 30 });
+    gSpotlights[2].model->SetPosition({ -15, 10, 30 });
     gSpotlights[2].model->FaceTarget(gGlassCube.model->Position());
     gSpotlights[2].MakeRainbow();
 
     // Flickering lights
     gPointlights[0].colour = { 0.2f, 0.7f, 1.0f };
-    gPointlights[0].SetStrength(25);
-    gPointlights[0].model->SetPosition({ 20, 25, 40 });
+    gPointlights[0].SetStrength(10);
+    gPointlights[0].model->SetPosition({ -56, 100, 73.5f });
     gPointlights[0].model->FaceTarget(gCamera->Position());
     gPointlights[0].MakeFlicker();
 
     gPointlights[1].colour = { 0.9f, 0.1f, 0.5f };
     gPointlights[1].SetStrength(10);
-    gPointlights[1].model->SetPosition({ -72.8f, 100, 103.5f });
+    gPointlights[1].model->SetPosition({ -52.8f, 100, 103.5f });
     gPointlights[1].MakeFlicker();
 
     return true;
@@ -692,7 +725,7 @@ void RenderSceneFromCamera(Camera* camera)
     gD3DContext->OMSetBlendState(gAdditiveBlendingState, nullptr, 0xffffff);
     for (int i = 0; i < NUM_MODELS; i++)
     {
-        if (gModels[i]->renderMode == AddBlendLight)
+        if (gModels[i]->renderMode == AddBlendLight || gModels[i]->renderMode == Ghost)
         {
             gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
             gModels[i]->model->Render();
@@ -814,6 +847,10 @@ void RenderScene()
 void UpdateScene(float frameTime)
 {
     // Light effects
+    for (int i = 0; i < NUM_SPOTLIGHTS; i++)
+    {
+        gSpotlights[i].Update(frameTime);
+    }
     for (int i = 0; i < NUM_POINTLIGHTS; i++)
     {
         gPointlights[i].Update(frameTime);
