@@ -421,6 +421,7 @@ bool InitScene()
     gBuilding.model->SetPosition({ -70, 0, 105 });
     gBuilding.model->SetRotation({ 0, -2, 0 });
     gBuilding.model->SetScale(0.7f);
+    gBuilding.renderMode = Bright;
 
     gModels[24] = &gBuilding;
 
@@ -475,7 +476,7 @@ bool InitScene()
 
     gPointlights[1].colour = { 0.9f, 0.1f, 0.5f };
     gPointlights[1].SetStrength(10);
-    gPointlights[1].model->SetPosition({ -72, 100, 102.5f });
+    gPointlights[1].model->SetPosition({ -72.8f, 100, 103.5f });
     gPointlights[1].MakeFlicker();
 
     return true;
@@ -515,13 +516,14 @@ void ReleaseResources()
         gModels[i]->~SceneModel();
     }
 
-    delete gLightMesh;      gLightMesh      = nullptr;
-    delete gGroundMesh;     gGroundMesh     = nullptr;
-    delete gCrateMesh;      gCrateMesh      = nullptr;
-    delete gTeapotMesh;     gTeapotMesh     = nullptr;
-    delete gSphereMesh;     gSphereMesh     = nullptr;
-    delete gCubeMesh;       gCubeMesh       = nullptr;
+    delete gLightMesh;       gLightMesh      = nullptr;
+    delete gGroundMesh;      gGroundMesh     = nullptr;
+    delete gCrateMesh;       gCrateMesh      = nullptr;
+    delete gTeapotMesh;      gTeapotMesh     = nullptr;
+    delete gSphereMesh;      gSphereMesh     = nullptr;
+    delete gCubeMesh;        gCubeMesh       = nullptr;
     delete gTangentCubeMesh; gTangentCubeMesh = nullptr;
+    delete gBuildingMesh;    gBuildingMesh = nullptr;
 }
 
 
@@ -565,6 +567,16 @@ void RenderSceneFromCamera(Camera* camera)
     for (int i = 0; i < NUM_MODELS; i++)
     {
         if (gModels[i]->renderMode == Default)
+        {
+            gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
+            gModels[i]->model->Render();
+        }
+    }
+
+    gD3DContext->PSSetShader(gBrightPixelShader, nullptr, 0);
+    for (int i = 0; i < NUM_MODELS; i++)
+    {
+        if (gModels[i]->renderMode == Bright)
         {
             gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
             gModels[i]->model->Render();

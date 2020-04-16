@@ -10,16 +10,17 @@ class SceneModel;
 
 enum RenderMode
 {
-	Default,
-	Wiggle,
-	TextureFade,
-	NormalMap,
-	ParallaxMap,
-	AddBlend,
-	AddBlendLight,
-	MultBlend,
-	AlphBlend,
-	None // Assign this to hide the object
+	Default,		// Default shaders, receives lighting and casts shadows
+	Bright,			// Similar to above, but the light's effects are increased and a tint is added
+	Wiggle,			// Vertex deformation, movement up and down, texture scrolling and tint. Casts and receives shadows.
+	TextureFade,	// Goes from one texture to another and back over time, receives lighting and shadows
+	NormalMap,		// Normal mapping, receives lighting and shadows
+	ParallaxMap,	// Same as above but with parallax mapping added
+	AddBlend,		// Transparent object that uses additive blending, doesn't receive light or shadows
+	AddBlendLight,	// Similar to above, but receives and cass (cloured) shadows
+	MultBlend,		// Transparent object rendered using multiplicative blending, no lighting
+	AlphBlend,		// Texture transparency is retained, no lighting
+	None			// Assign this to hide an object
 };
 
 //--------------------------------------------------------------------------------------
