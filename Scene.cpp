@@ -321,8 +321,8 @@ bool InitScene()
     //// Set up camera ////
 
     gCamera = new Camera();
-    gCamera->SetPosition({ 15, 30,-70 });
-    gCamera->SetRotation({ ToRadians(13), 0, 0 });
+    gCamera->SetPosition({ 15, 40, -85 });
+    gCamera->SetRotation({ ToRadians(5), ToRadians(-15), 0 });
 
     //// Set up scene ////
 
