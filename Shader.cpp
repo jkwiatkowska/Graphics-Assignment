@@ -30,6 +30,7 @@ ID3D11PixelShader*  gAlphaPixelShader           = nullptr;
 ID3D11PixelShader*  gAlphaLightingPixelShader   = nullptr;
 ID3D11PixelShader*  gBrightPixelShader          = nullptr;
 ID3D11PixelShader*  gTextureGradientPixelShader = nullptr;
+ID3D11PixelShader*  gCubeMapPixelShader         = nullptr;
 
 //--------------------------------------------------------------------------------------
 // Shader creation / destruction
@@ -56,12 +57,14 @@ bool LoadShaders()
     gAlphaLightingPixelShader    = LoadPixelShader("AlphaLighting_ps");
     gBrightPixelShader           = LoadPixelShader("Bright_ps");
     gTextureGradientPixelShader  = LoadPixelShader("TextureGradient_ps");
+    gCubeMapPixelShader          = LoadPixelShader("CubeMap_ps");
 
     if (gDefaultVertexShader        == nullptr  || gDefaultPixelShader       == nullptr   || gBrightPixelShader          == nullptr ||
         gNormalMappingVertexShader  == nullptr  || gNormalMappingPixelShader == nullptr   || gParallaxMappingPixelShader == nullptr ||
         gWiggleVertexShader         == nullptr  || gWigglePixelShader        == nullptr   || gTextureGradientPixelShader == nullptr ||
         gBasicTransformVertexShader == nullptr  || gLightModelPixelShader    == nullptr   || gDepthOnlyPixelShader       == nullptr ||
-        gTexFadePixelShader         == nullptr  || gAlphaPixelShader         == nullptr   || gAlphaLightingPixelShader   == nullptr)
+        gTexFadePixelShader         == nullptr  || gAlphaPixelShader         == nullptr   || gAlphaLightingPixelShader   == nullptr ||
+        gCubeMapPixelShader         == nullptr)
     {
         gLastError = "Error loading shaders";
         return false;
@@ -88,6 +91,7 @@ void ReleaseShaders()
     if (gAlphaLightingPixelShader)    gAlphaLightingPixelShader->Release();
     if (gBrightPixelShader)           gBrightPixelShader->Release();
     if (gTextureGradientPixelShader)  gTextureGradientPixelShader->Release();
+    if (gCubeMapPixelShader)          gCubeMapPixelShader->Release();
 }
 
 

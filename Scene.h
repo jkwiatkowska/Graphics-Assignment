@@ -18,6 +18,7 @@ enum RenderMode
 	TexGradientNS,   // Same as above, but doesn't cast shadows 
 	NormalMap,		 // Normal mapping, receives lighting and shadows
 	ParallaxMap,	 // Same as above but with parallax mapping added
+	CubeMap,
 	AddBlend,		 // Transparent object that uses additive blending, doesn't receive light or shadows
 	AddBlendLight,	 // Similar to above, but receives and casts (coloured) shadows
 	Ghost,			 // Same as above, but doesn't cast shadows

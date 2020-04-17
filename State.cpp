@@ -21,6 +21,7 @@
 ID3D11SamplerState* gPointSampler         = nullptr;
 ID3D11SamplerState* gTrilinearSampler     = nullptr;
 ID3D11SamplerState* gAnisotropic4xSampler = nullptr;
+ID3D11SamplerState* gCubeMapSampler       = nullptr;
 
 // Blend states allow us to switch between blending modes (none, additive, multiplicative etc.)
 ID3D11BlendState* gNoBlendingState             = nullptr;
@@ -106,6 +107,22 @@ bool CreateStates()
 		return false;
 	}
 
+    ////-------- Cube mapping --------////
+    samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;    // Wrap addressing mode for texture coordinates outside 0->1
+    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;    // --"--
+    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;    // --"--
+    samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+
+    samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+    samplerDesc.MinLOD = 0;
+
+    // Then create a DirectX object for your description that can be used by a shader
+    if (FAILED(gD3DDevice->CreateSamplerState(&samplerDesc, &gCubeMapSampler)))
+    {
+        gLastError = "Error creating cube map sampler";
+        return false;
+    }
 
     //--------------------------------------------------------------------------------------
 	// Rasterizer States
