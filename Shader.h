@@ -29,6 +29,7 @@ extern ID3D11PixelShader*  gTexFadePixelShader;
 extern ID3D11PixelShader*  gAlphaPixelShader;
 extern ID3D11PixelShader*  gAlphaLightingPixelShader;
 extern ID3D11PixelShader*  gBrightPixelShader;
+extern ID3D11PixelShader*  gTextureGradientPixelShader;
 
 //--------------------------------------------------------------------------------------
 // Shader creation / destruction

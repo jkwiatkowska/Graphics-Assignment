@@ -1,8 +1,6 @@
 #pragma once
 #include "SceneModel.h"
 
-__declspec(selectany) extern const int gShadowMapSize = 4096; // Dimensions of shadow map texture - controls quality of shadows
-
 // Base light class
 class Light : public SceneModel
 {
@@ -53,6 +51,8 @@ public:
 class Spotlight : public Light
 {
 public:
+    const int shadowMapSize = 4096; // Dimensions of shadow map texture - controls quality of shadows
+
     SpotlightBuffer buffer;
     float gSpotlightConeAngle = 90.0f; // Spot light cone angle (degrees), like the FOV (field-of-view) of the spot light
     bool isSpot = true;

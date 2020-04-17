@@ -28,7 +28,8 @@ ID3D11PixelShader*  gDepthOnlyPixelShader       = nullptr;
 ID3D11PixelShader*  gTexFadePixelShader         = nullptr;
 ID3D11PixelShader*  gAlphaPixelShader           = nullptr;
 ID3D11PixelShader*  gAlphaLightingPixelShader   = nullptr;
-ID3D11PixelShader*  gBrightPixelShader           = nullptr;
+ID3D11PixelShader*  gBrightPixelShader          = nullptr;
+ID3D11PixelShader*  gTextureGradientPixelShader = nullptr;
 
 //--------------------------------------------------------------------------------------
 // Shader creation / destruction
@@ -53,11 +54,12 @@ bool LoadShaders()
     gTexFadePixelShader          = LoadPixelShader("TextureFade_ps");
     gAlphaPixelShader            = LoadPixelShader("Alpha_ps");
     gAlphaLightingPixelShader    = LoadPixelShader("AlphaLighting_ps");
-    gBrightPixelShader            = LoadPixelShader("Bright_ps");
+    gBrightPixelShader           = LoadPixelShader("Bright_ps");
+    gTextureGradientPixelShader  = LoadPixelShader("TextureGradient_ps");
 
-    if (gDefaultVertexShader        == nullptr  || gDefaultPixelShader       == nullptr   || gBrightPixelShader           == nullptr ||
+    if (gDefaultVertexShader        == nullptr  || gDefaultPixelShader       == nullptr   || gBrightPixelShader          == nullptr ||
         gNormalMappingVertexShader  == nullptr  || gNormalMappingPixelShader == nullptr   || gParallaxMappingPixelShader == nullptr ||
-        gWiggleVertexShader         == nullptr  || gWigglePixelShader        == nullptr   || 
+        gWiggleVertexShader         == nullptr  || gWigglePixelShader        == nullptr   || gTextureGradientPixelShader == nullptr ||
         gBasicTransformVertexShader == nullptr  || gLightModelPixelShader    == nullptr   || gDepthOnlyPixelShader       == nullptr ||
         gTexFadePixelShader         == nullptr  || gAlphaPixelShader         == nullptr   || gAlphaLightingPixelShader   == nullptr)
     {
@@ -84,7 +86,8 @@ void ReleaseShaders()
     if (gTexFadePixelShader)          gTexFadePixelShader->Release();
     if (gAlphaPixelShader)            gAlphaPixelShader->Release();
     if (gAlphaLightingPixelShader)    gAlphaLightingPixelShader->Release();
-    if (gBrightPixelShader)            gBrightPixelShader->Release();
+    if (gBrightPixelShader)           gBrightPixelShader->Release();
+    if (gTextureGradientPixelShader)  gTextureGradientPixelShader->Release();
 }
 
 

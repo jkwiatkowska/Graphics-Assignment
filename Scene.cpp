@@ -32,23 +32,24 @@
 //--------------------------------------------------------------------------------------
 
 // DirectX objects controlling textures used in this lab
-const int NUM_TEXTURES = 15;
+const int NUM_TEXTURES = 16;
 Texture* gTextures[NUM_TEXTURES];
 
-Texture gStoneTexture    = Texture("StoneDiffuseSpecular.dds");
-Texture gCrateTexture    = Texture("CargoA.dds");
-Texture gCobbleTexture   = Texture("CobbleDiffuseSpecular.dds", "CobbleNormalHeight.dds");
-Texture gLightTexture    = Texture("Flare.jpg");
-Texture gWoodTexture     = Texture("WoodDiffuseSpecular.dds", "WoodNormal.dds");
-Texture gWallTexture     = Texture("WallDiffuseSpecular.dds", "WallNormalHeight.dds");
-Texture gTechTexture     = Texture("TechDiffuseSpecular.dds", "TechNormalHeight.dds");
-Texture gPatternTexture  = Texture("PatternDiffuseSpecular.dds", "PatternNormalHeight.dds");
-Texture gMetalTexture    = Texture("MetalDiffuseSpecular.dds", "MetalNormal.dds");
-Texture gGrassTexture    = Texture("GrassDiffuseSpecular.dds");
-Texture gGlassTexture    = Texture("Glass.jpg");
-Texture gPortalTexture   = Texture("");
-Texture gDecalTexture[3] = { Texture("acorn.png"), Texture("tank.png"), Texture("wizard.png") };
-Texture gBuildingTexture = Texture("bld-mt.jpg");
+Texture gStoneTexture      = Texture("StoneDiffuseSpecular.dds");
+Texture gCrateTexture      = Texture("CargoA.dds");
+Texture gCobbleTexture     = Texture("CobbleDiffuseSpecular.dds", "CobbleNormalHeight.dds");
+Texture gLightTexture      = Texture("Flare.jpg");
+Texture gWoodTexture       = Texture("WoodDiffuseSpecular.dds", "WoodNormal.dds");
+Texture gWallTexture       = Texture("WallDiffuseSpecular.dds", "WallNormalHeight.dds");
+Texture gTechTexture       = Texture("TechDiffuseSpecular.dds", "TechNormalHeight.dds");
+Texture gPatternTexture    = Texture("PatternDiffuseSpecular.dds", "PatternNormalHeight.dds");
+Texture gMetalTexture      = Texture("MetalDiffuseSpecular.dds", "MetalNormal.dds");
+Texture gGrassTexture      = Texture("GrassDiffuseSpecular.dds");
+Texture gGlassTexture      = Texture("Glass.jpg");
+Texture gPortalTexture     = Texture("");
+Texture gDecalTexture[3]   = { Texture("acorn.png"), Texture("tank.png"), Texture("wizard.png") };
+Texture gBuildingTexture   = Texture("bld-mt.jpg");
+Texture gGravelTexture     = Texture("gravel.jpg");
 
 //--------------------------------------------------------------------------------------
 // Scene Data
@@ -74,30 +75,32 @@ Mesh* gQuadMesh;
 Mesh* gBuildingMesh;
 Mesh* gHillMesh;
 
-const int NUM_MODELS = 28;
+const int NUM_MODELS = 35;
 SceneModel* gModels[NUM_MODELS];
 
-SceneModel gTeapot = SceneModel(&gStoneTexture);        // 0
-SceneModel gCrate = SceneModel(&gCrateTexture);         // 1
-SceneModel gGround = SceneModel(&gCobbleTexture);       // 2
+SceneModel gTeapot = SceneModel(&gStoneTexture);                // 0
+SceneModel gCrate = SceneModel(&gCrateTexture);                 // 1
+SceneModel gGround = SceneModel(&gCobbleTexture);               // 2
 
-SceneModel gWiggleSphere = SceneModel(&gStoneTexture);  // 3
+SceneModel gWiggleSphere = SceneModel(&gStoneTexture);          // 3
 
 const int NUM_BRICKS = 14;
-SceneModel gBricks[NUM_BRICKS];                         // 4-17
+SceneModel gBricks[NUM_BRICKS];                                 // 4-17
 
-SceneModel gNormalCube = SceneModel(&gPatternTexture);  // 18
-SceneModel gGlassCube = SceneModel(&gGlassTexture);     // 19
+SceneModel gNormalCube = SceneModel(&gPatternTexture);          // 18
+SceneModel gGlassCube = SceneModel(&gGlassTexture);             // 19
 
-SceneModel gPortal(&gPortalTexture);                    // 20
+SceneModel gPortal(&gPortalTexture);                            // 20
 
-SceneModel gDecal[3];                                   // 21-23
+SceneModel gDecal[3];                                           // 21-23
 
-SceneModel gBuilding = SceneModel(&gTechTexture);       // 24
-SceneModel gBuilding2 = SceneModel(&gBuildingTexture);  // 25
-SceneModel gWoodSphere = SceneModel(&gWoodTexture);     // 26
+SceneModel gBuilding = SceneModel(&gTechTexture);               // 24
+SceneModel gBuilding2 = SceneModel(&gBuildingTexture);          // 25
+SceneModel gWoodSphere = SceneModel(&gWoodTexture);             // 26
 
-SceneModel gHill = SceneModel(&gGrassTexture);          // 27
+SceneModel gHill = SceneModel(&gGrassTexture, &gGravelTexture); // 27
+const int NUM_LANDSPHERES = 7;
+SceneModel gLandSpheres[NUM_LANDSPHERES];                       // 28-34
 
 Camera* gCamera;
 
@@ -179,8 +182,8 @@ bool InitGeometry()
 
     // Create shadow map textures
     D3D11_TEXTURE2D_DESC textureDesc = {};
-    textureDesc.Width = gShadowMapSize; // Size of the shadow map determines quality / resolution of shadows
-    textureDesc.Height = gShadowMapSize;
+    textureDesc.Width = gSpotlights[0].shadowMapSize; // Size of the shadow map determines quality / resolution of shadows
+    textureDesc.Height = gSpotlights[0].shadowMapSize;
     textureDesc.MipLevels = 1; // 1 level, means just the main texture, no additional mip-maps. Usually don't use mip-maps when rendering to textures (or we would have to render every level)
     textureDesc.ArraySize = 1;
     textureDesc.Format = DXGI_FORMAT_R32_TYPELESS; // The shadow map contains a single 32-bit value [tech gotcha: have to say typeless because depth buffer and shaders see things slightly differently]
@@ -287,7 +290,8 @@ bool InitGeometry()
     gTextures[9]  = &gGrassTexture;
     gTextures[10] = &gGlassTexture;
     gTextures[11] = &gBuildingTexture;
-    for (int i = 0; i < 3; i++) gTextures[12 + i] = &gDecalTexture[i];
+    gTextures[12] = &gGravelTexture;
+    for (int i = 0; i < 3; i++) gTextures[13 + i] = &gDecalTexture[i];
     
     for (int i = 0; i < NUM_TEXTURES; i++)
     {
@@ -321,15 +325,15 @@ bool InitScene()
     //// Set up camera ////
 
     gCamera = new Camera();
-    gCamera->SetPosition({ 15, 40, -85 });
-    gCamera->SetRotation({ ToRadians(5), ToRadians(-15), 0 });
+    gCamera->SetPosition({ 10, 56, -118 });
+    gCamera->SetRotation({ ToRadians(8.5f), ToRadians(-2), 0 });
 
     //// Set up scene ////
 
     // Teapot
     gTeapot.model = new Model(gTeapotMesh);
-    gTeapot.model->SetPosition({ 15, 0, 0 });
-    gTeapot.model->SetScale(1);
+    gTeapot.model->SetPosition({ 15, 0, -5 });
+    gTeapot.model->SetScale(1.2f);
     gTeapot.model->SetRotation({ 0, ToRadians(215.0f), 0 });
     
     gModels[0] = &gTeapot;
@@ -428,7 +432,7 @@ bool InitScene()
 
     // Buildings
     gBuilding.model = new Model(gBuildingMesh);
-    gBuilding.model->SetPosition({ -50, 0, 105 });
+    gBuilding.model->SetPosition({ -60, 0, 105 });
     gBuilding.model->SetRotation({ 0, -2, 0 });
     gBuilding.model->SetScale(0.7f);
     gBuilding.renderMode = Bright;
@@ -436,7 +440,7 @@ bool InitScene()
     gModels[24] = &gBuilding;
 
     gBuilding2.model = new Model(gBuildingMesh);
-    gBuilding2.model->SetPosition({ -56, 0, 70 });
+    gBuilding2.model->SetPosition({ -66, 0, 70 });
     gBuilding2.model->SetRotation({ 0, 0, 0 });
     gBuilding2.model->SetScale(0.7f);
     gBuilding2.renderMode = Ghost;
@@ -455,8 +459,35 @@ bool InitScene()
     gHill.model = new Model(gHillMesh);
     gHill.model->SetScale(3.5f);
     gHill.model->SetPosition({ -65, -15, -20 });
-    
+    gHill.renderMode = TextureGradient;
+
     gModels[27] = &gHill;
+
+    // Land spheres
+    for (int i = 0; i < NUM_LANDSPHERES; i++)
+    {
+        gLandSpheres[i] = SceneModel(&gGrassTexture, &gGravelTexture);
+        gLandSpheres[i].model = new Model(gSphereMesh);
+        gLandSpheres[i].renderMode = TextureGradient;
+
+        gModels[28 + i] = &gLandSpheres[i];
+    }
+    gLandSpheres[0].model->SetScale(2.5f);
+    gLandSpheres[0].model->SetPosition({ 110, -5, 50 });
+    gLandSpheres[1].model->SetScale(1.7f);
+    gLandSpheres[1].model->SetPosition({ 90, -1, 120 });
+    gLandSpheres[2].model->SetScale(1.1f);
+    gLandSpheres[2].model->SetPosition({ 130, 25, 140 });
+
+    gLandSpheres[3].model->SetScale(1.8f);
+    gLandSpheres[3].model->SetPosition({ -70, 0, 30 });
+    gLandSpheres[4].model->SetScale(0.8f);
+    gLandSpheres[4].model->SetPosition({ -50, 0, -5 });
+
+    gLandSpheres[5].model->SetScale(3.4f);
+    gLandSpheres[5].model->SetPosition({ -30, 0, 255 });
+    gLandSpheres[6].model->SetScale(1.5f);
+    gLandSpheres[6].model->SetPosition({ 15, 40, 310 });
     
     //// Set up lights ////
     int lightIndex = 0;
@@ -487,9 +518,10 @@ bool InitScene()
     // Far light
     gSpotlights[1].colour = { 1.0f, 0.8f, 0.2f };
     gSpotlights[1].SetStrength(70);
-    gSpotlights[1].model->SetPosition({ -120, 220, 265 });
+    gSpotlights[1].model->SetPosition({ -120, 200, 475 });
     gSpotlights[1].model->FaceTarget({ 0, 0, -100 });
     gSpotlights[1].isSpot = false;
+    gSpotlights[1].gSpotlightConeAngle = 120;
 
     gPortalTexture.diffuseSpecularMapSRV = gSpotlights[1].colourMapSRV;
 
@@ -503,13 +535,13 @@ bool InitScene()
     // Flickering lights
     gPointlights[0].colour = { 0.2f, 0.7f, 1.0f };
     gPointlights[0].SetStrength(10);
-    gPointlights[0].model->SetPosition({ -56, 100, 73.5f });
+    gPointlights[0].model->SetPosition({ -66, 100, 73.5f });
     gPointlights[0].model->FaceTarget(gCamera->Position());
     gPointlights[0].MakeFlicker();
 
     gPointlights[1].colour = { 0.9f, 0.1f, 0.5f };
     gPointlights[1].SetStrength(10);
-    gPointlights[1].model->SetPosition({ -52.8f, 100, 103.5f });
+    gPointlights[1].model->SetPosition({ -62.8f, 100, 103.5f });
     gPointlights[1].MakeFlicker();
 
     return true;
@@ -620,6 +652,17 @@ void RenderSceneFromCamera(Camera* camera)
     for (int i = 0; i < NUM_MODELS; i++)
     {
         if (gModels[i]->renderMode == TextureFade)
+        {
+            gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
+            gD3DContext->PSSetShaderResources(4, 1, &gModels[i]->texture2->diffuseSpecularMapSRV);
+            gModels[i]->model->Render();
+        }
+    }
+
+    gD3DContext->PSSetShader(gTextureGradientPixelShader, nullptr, 0);
+    for (int i = 0; i < NUM_MODELS; i++)
+    {
+        if (gModels[i]->renderMode == TextureGradient || gModels[i]->renderMode == TexGradientNS)
         {
             gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
             gD3DContext->PSSetShaderResources(4, 1, &gModels[i]->texture2->diffuseSpecularMapSRV);

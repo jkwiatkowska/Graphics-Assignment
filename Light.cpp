@@ -116,7 +116,8 @@ void Spotlight::RenderShadowMap(int numModels, SceneModel* models[])
     // Render models - no state changes required between each object in this situation (no textures used in this step)
     for (int i = 0; i < numModels; i++)
     {
-        if (models[i]->renderMode == Default || models[i]->renderMode == TextureFade || models[i]->renderMode == NormalMap || models[i]->renderMode == ParallaxMap || models[i]->renderMode == Bright)
+        if (models[i]->renderMode == Default || models[i]->renderMode == TextureFade || models[i]->renderMode == NormalMap || models[i]->renderMode == ParallaxMap || models[i]->renderMode == Bright ||
+            models[i]->renderMode == TextureGradient)
             models[i]->model->Render();
     }
     gD3DContext->VSSetShader(gWiggleVertexShader, nullptr, 0);
@@ -161,12 +162,10 @@ void Spotlight::RenderColourMap(int numModels, SceneModel* models[])
 
 void Spotlight::RenderFromLightPOV(int numModels, SceneModel* models[])
 {
-    //// Render from light's point of view ////
-
     // Setup the viewport to the size of the shadow map texture
     D3D11_VIEWPORT vp;
-    vp.Width = static_cast<FLOAT>(gShadowMapSize);
-    vp.Height = static_cast<FLOAT>(gShadowMapSize);
+    vp.Width = static_cast<FLOAT>(shadowMapSize);
+    vp.Height = static_cast<FLOAT>(shadowMapSize);
     vp.MinDepth = 0.0f;
     vp.MaxDepth = 1.0f;
     vp.TopLeftX = 0;
