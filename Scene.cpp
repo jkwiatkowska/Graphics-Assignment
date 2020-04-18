@@ -642,15 +642,10 @@ void ReleaseResources()
     ReleaseShaders();
 
     // See note in InitGeometry about why we're not using unique_ptr and having to manually delete
-    for (int i = 0; i < NUM_SPOTLIGHTS; ++i)
+    for (int i = 0; i < NUM_LIGHTS; ++i)
     {
-        delete gSpotlights[i].model;  
-        gSpotlights[i].model = nullptr;
-    }
-    for (int i = 0; i < NUM_POINTLIGHTS; ++i)
-    {
-        delete gPointlights[i].model;  
-        gPointlights[i].model = nullptr;
+        delete gLights[i]->model;  
+        gLights[i]->model = nullptr;
     }
     delete gCamera;    gCamera    = nullptr;
 
@@ -659,17 +654,18 @@ void ReleaseResources()
         gModels[i]->~SceneModel();
     }
 
-    delete gLightMesh;       gLightMesh      = nullptr;
-    delete gGroundMesh;      gGroundMesh     = nullptr;
-    delete gCrateMesh;       gCrateMesh      = nullptr;
-    delete gTeapotMesh;      gTeapotMesh     = nullptr;
-    delete gSphereMesh;      gSphereMesh     = nullptr;
-    delete gCubeMesh;        gCubeMesh       = nullptr;
-    delete gTangentCubeMesh; gTangentCubeMesh = nullptr;
-    delete gBuildingMesh;    gBuildingMesh = nullptr;
+    delete gLightMesh;         gLightMesh         = nullptr;
+    delete gGroundMesh;        gGroundMesh        = nullptr;
+    delete gCrateMesh;         gCrateMesh         = nullptr;
+    delete gTeapotMesh;        gTeapotMesh        = nullptr;
+    delete gSphereMesh;        gSphereMesh        = nullptr;
+    delete gTangentSphereMesh; gTangentSphereMesh = nullptr;
+    delete gCubeMesh;          gCubeMesh          = nullptr;
+    delete gTangentCubeMesh;   gTangentCubeMesh   = nullptr;
+    delete gBuildingMesh;      gBuildingMesh      = nullptr;
+    delete gQuadMesh;          gQuadMesh          = nullptr;
+    delete gHillMesh;          gHillMesh          = nullptr;
 }
-
-
 
 //--------------------------------------------------------------------------------------
 // Scene Rendering
