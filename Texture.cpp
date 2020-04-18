@@ -9,8 +9,8 @@ Texture::Texture(std::string filename, std::string normalFilename)
 Texture::~Texture()
 {
 	if (diffuseSpecularMap) diffuseSpecularMap->Release();
-	//if (diffuseSpecularMapSRV) diffuseSpecularMapSRV->Release();
+	if (diffuseSpecularMapSRV) diffuseSpecularMapSRV->Release();
 
 	if (normalMap) normalMap->Release();
-	//if (normalMapSRV) normalMapSRV->Release();
+	if (normalMapSRV) normalMapSRV->Release();
 }

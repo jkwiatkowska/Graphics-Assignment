@@ -32,7 +32,7 @@
 //--------------------------------------------------------------------------------------
 
 // DirectX objects controlling textures used in this lab
-const int NUM_TEXTURES = 16;
+const int NUM_TEXTURES = 15;
 Texture* gTextures[NUM_TEXTURES];
 
 Texture gStoneTexture      = Texture("StoneDiffuseSpecular.dds");
@@ -43,7 +43,6 @@ Texture gWoodTexture       = Texture("WoodDiffuseSpecular.dds", "WoodNormal.dds"
 Texture gWallTexture       = Texture("WallDiffuseSpecular.dds", "WallNormalHeight.dds");
 Texture gTechTexture       = Texture("TechDiffuseSpecular.dds", "TechNormalHeight.dds");
 Texture gPatternTexture    = Texture("PatternDiffuseSpecular.dds", "PatternNormalHeight.dds");
-Texture gMetalTexture      = Texture("MetalDiffuseSpecular.dds", "MetalNormal.dds");
 Texture gGrassTexture      = Texture("GrassDiffuseSpecular.dds");
 Texture gGlassTexture      = Texture("Glass.jpg");
 Texture gPortalTexture     = Texture("");
@@ -82,7 +81,7 @@ Mesh* gQuadMesh;
 Mesh* gBuildingMesh;
 Mesh* gHillMesh;
 
-const int NUM_MODELS = 40;
+const int NUM_MODELS = 41;
 SceneModel* gModels[NUM_MODELS];
 
 SceneModel gTeapot = SceneModel(&gStoneTexture);                // 0
@@ -113,13 +112,15 @@ SceneModel gSky = SceneModel(&gSpaceTexture, &gCloudsTexture);          // 35
 SceneModel gCubeMapTeapot = SceneModel(&gSkyTexture, &gCloudsTexture);  // 36
 SceneModel gCubeMapSphere[3];                                           // 37-39
 
+SceneModel gCrate2 = SceneModel(&gCrateTexture);                 // 40
+
 Camera* gCamera;
 
 // Lights
 const int NUM_SPOTLIGHTS = 3;
 const int MAX_SPOTLIGHTS = 15;
 
-const int NUM_POINTLIGHTS = 3;
+const int NUM_POINTLIGHTS = 4;
 const int MAX_POINTLIGHTS = 25;
 
 const int NUM_LIGHTS = NUM_SPOTLIGHTS + NUM_POINTLIGHTS;
@@ -297,12 +298,11 @@ bool InitGeometry()
     gTextures[5]  = &gWallTexture;
     gTextures[6]  = &gTechTexture;
     gTextures[7]  = &gPatternTexture;
-    gTextures[8]  = &gMetalTexture;
-    gTextures[9]  = &gGrassTexture;
-    gTextures[10] = &gGlassTexture;
-    gTextures[11] = &gBuildingTexture;
-    gTextures[12] = &gGravelTexture;
-    for (int i = 0; i < 3; i++) gTextures[13 + i] = &gDecalTexture[i];
+    gTextures[8]  = &gGrassTexture;
+    gTextures[9] = &gGlassTexture;
+    gTextures[10] = &gBuildingTexture;
+    gTextures[11] = &gGravelTexture;
+    for (int i = 0; i < 3; i++) gTextures[12 + i] = &gDecalTexture[i];
     
     for (int i = 0; i < NUM_TEXTURES; i++)
     {
@@ -366,7 +366,7 @@ bool InitScene()
     gModels[0] = &gTeapot;
 
     // Crate
-    gCrate.model     = new Model(gCrateMesh);
+    gCrate.model = new Model(gCrateMesh);
     gCrate.model->SetPosition({ 40, 0, 30 });
     gCrate.model->SetScale(6);
     gCrate.model->SetRotation({ 0.0f, ToRadians(-20.0f), 0.0f });
@@ -374,7 +374,7 @@ bool InitScene()
     gModels[1] = &gCrate;
     
     // Ground
-    gGround.model    = new Model(gGroundMesh);
+    gGround.model = new Model(gGroundMesh);
     gGround.renderMode = ParallaxMap;
     gGround.model->SetScale(0.8f);
     gModels[2] = &gGround;
@@ -550,6 +550,14 @@ bool InitScene()
     gCubeMapSphere[2].model->SetScale(0.52f);
     gCubeMapSphere[2].model->SetPosition({ 68.5f, 61, 138 });
 
+    gCrate2.model = new Model(gCrateMesh);
+    gCrate2.model->SetPosition({ 58, 0, 23 });
+    gCrate2.model->SetScale(6);
+    gCrate2.model->SetRotation({ 0.0f, ToRadians(-20.0f), 0.0f });
+    gCrate.renderMode = Bright;
+
+    gModels[40] = &gCrate2;
+
     //// Set up lights ////
     int lightIndex = 0;
     for (int i = 0; i < NUM_SPOTLIGHTS; ++i)
@@ -566,7 +574,7 @@ bool InitScene()
         gPointlights[i].texture = &gLightTexture;
         gPointlights[i].model = new Model(gLightMesh);
 
-        gLights[lightIndex] = &gSpotlights[i];
+        gLights[lightIndex] = &gPointlights[i];
         lightIndex++;
     }
 
@@ -608,7 +616,11 @@ bool InitScene()
     // Pointlights
     gPointlights[2].colour = { 0.2f, 0.8f, 0.9f };
     gPointlights[2].SetStrength(15);
-    gPointlights[2].model->SetPosition({ 4, 28, 115 });
+    gPointlights[2].model->SetPosition({ 4, 18, 115 });
+
+    gPointlights[3].colour = { 0.7f, 0.5f, 0.1f };
+    gPointlights[3].SetStrength(15);
+    gPointlights[3].model->SetPosition({ -40, 3, 9 });
 
     return true;
 }
@@ -824,11 +836,6 @@ void RenderSceneFromCamera(Camera* camera)
         gPerModelConstants.objectColour = gLights[i]->colour; // Set any per-model constants apart from the world matrix just before calling render (light colour here)
         gLights[i]->model->Render();
     }
-    for (int i = 0; i < NUM_POINTLIGHTS; ++i)
-    {
-        gPerModelConstants.objectColour = gPointlights[i].colour; // Set any per-model constants apart from the world matrix just before calling render (light colour here)
-        gPointlights[i].model->Render();
-    }
 
     //// Render transparent objects ////
 
@@ -964,16 +971,6 @@ void RenderScene()
     gD3DContext->PSSetShaderResources(10, NUM_SPOTLIGHTS, shadowMaps);
     gD3DContext->PSSetShaderResources(30, NUM_SPOTLIGHTS, colourMaps);
 
-    //*****************************//
-    // Temporary demonstration code for visualising the light's view of the scene
-    //ColourRGBA white = {1,1,1};
-    //gD3DContext->ClearRenderTargetView(gBackBufferRenderTarget, &white.r);
-    //gSpotlights[2].RenderShadowMap(NUM_MODELS, gModels);
-    //gD3DContext->ClearRenderTargetView(gBackBufferRenderTarget, &white.r);
-    //gSpotlights[2].RenderColourMap(NUM_MODELS, gModels);
-    //*****************************//
-
-
     //// Scene completion ////
 
     // When drawing to the off-screen back buffer is complete, we "present" the image to the front buffer (the screen)
@@ -989,13 +986,9 @@ void RenderScene()
 void UpdateScene(float frameTime)
 {
     // Light effects
-    for (int i = 0; i < NUM_SPOTLIGHTS; i++)
+    for (int i = 0; i < NUM_LIGHTS; i++)
     {
-        gSpotlights[i].Update(frameTime);
-    }
-    for (int i = 0; i < NUM_POINTLIGHTS; i++)
-    {
-        gPointlights[i].Update(frameTime);
+        gLights[i]->Update(frameTime);
     }
 
     // Wiggle effect
