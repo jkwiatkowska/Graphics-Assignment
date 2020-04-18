@@ -28,7 +28,7 @@ float4 main(LightingPixelShaderInput input) : SV_Target
 	float specularMaterialColour = textureColour.a;
 
 	// Combine lighting with texture colours
-	float3 finalColour = diffuseLight * diffuseMaterialColour + specularLight * specularMaterialColour;
+	float3 finalColour = lerp(diffuseMaterialColour, diffuseLight * diffuseMaterialColour + specularLight * specularMaterialColour, 0.5f); // Lighting effects decreased
 
 	return float4(finalColour, 1.0f);
 }

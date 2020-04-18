@@ -51,11 +51,12 @@ Texture gDecalTexture[3]   = { Texture("acorn.png"), Texture("tank.png"), Textur
 Texture gBuildingTexture   = Texture("bld-mt.jpg");
 Texture gGravelTexture     = Texture("gravel.jpg");
 
-const int NUM_CUBETEXTURES = 3;
+const int NUM_CUBETEXTURES = 4;
 Texture* gCubeTextures[NUM_CUBETEXTURES];
 Texture gSkyTexture        = Texture("skymap.dds");
 Texture gSpaceTexture      = Texture("space.dds");
 Texture gCloudsTexture     = Texture("clouds.dds");
+Texture gNatureTexture     = Texture("nature.dds");
 
 //--------------------------------------------------------------------------------------
 // Scene Data
@@ -81,7 +82,7 @@ Mesh* gQuadMesh;
 Mesh* gBuildingMesh;
 Mesh* gHillMesh;
 
-const int NUM_MODELS = 39;
+const int NUM_MODELS = 40;
 SceneModel* gModels[NUM_MODELS];
 
 SceneModel gTeapot = SceneModel(&gStoneTexture);                // 0
@@ -108,10 +109,9 @@ SceneModel gHill = SceneModel(&gGrassTexture, &gGravelTexture); // 27
 const int NUM_LANDSPHERES = 7;
 SceneModel gLandSpheres[NUM_LANDSPHERES];                       // 28-34
 
-SceneModel gSky = SceneModel(&gSpaceTexture, &gCloudsTexture);  // 35
-SceneModel gSkyTeapot = SceneModel(&gSkyTexture);               // 36
-SceneModel gSkyBall = SceneModel(&gSpaceTexture);               // 37
-SceneModel gSkyBall2 = SceneModel(&gSkyTexture);                // 38
+SceneModel gSky = SceneModel(&gSpaceTexture, &gCloudsTexture);          // 35
+SceneModel gCubeMapTeapot = SceneModel(&gSkyTexture, &gCloudsTexture);  // 36
+SceneModel gCubeMapSphere[3];                                           // 37-39
 
 Camera* gCamera;
 
@@ -119,7 +119,7 @@ Camera* gCamera;
 const int NUM_SPOTLIGHTS = 3;
 const int MAX_SPOTLIGHTS = 15;
 
-const int NUM_POINTLIGHTS = 2;
+const int NUM_POINTLIGHTS = 3;
 const int MAX_POINTLIGHTS = 25;
 
 const int NUM_LIGHTS = NUM_SPOTLIGHTS + NUM_POINTLIGHTS;
@@ -324,6 +324,7 @@ bool InitGeometry()
     gCubeTextures[0] = &gSkyTexture;
     gCubeTextures[1] = &gSpaceTexture;
     gCubeTextures[2] = &gCloudsTexture;
+    gCubeTextures[3] = &gNatureTexture;
     for (int i = 0; i < NUM_CUBETEXTURES; i++)
     {
         if (!LoadTexture(gCubeTextures[i]->name, &gCubeTextures[i]->diffuseSpecularMap, &gCubeTextures[i]->diffuseSpecularMapSRV))
@@ -523,23 +524,31 @@ bool InitScene()
 
     gModels[35] = &gSky;
 
-    // Sky objects
-    gSkyTeapot.model = new Model(gTeapotMesh);
-    gSkyTeapot.renderMode = CubeMapLight;
-    gSkyTeapot.model->SetPosition({ 35, 30, 130 });
+    // Cubemap objects
+    gCubeMapTeapot.model = new Model(gTeapotMesh);
+    gCubeMapTeapot.renderMode = CubeMapAnimated;
+    gCubeMapTeapot.model->SetPosition({ 35, 30, 130 });
 
-    gSkyBall.model = new Model(gSphereMesh);
-    gSkyBall.renderMode = CubeMap;
-    gSkyBall.model->SetPosition({ 70, 25, 140 });
+    gModels[36] = &gCubeMapTeapot;
 
-    gSkyBall2.model = new Model(gSphereMesh);
-    gSkyBall2.model->SetScale(0.68f);
-    gSkyBall2.renderMode = CubeMap;
-    gSkyBall2.model->SetPosition({ 55, 45, 143 });
+    for (int i = 0; i < 3; i++)
+    {
+        gCubeMapSphere[i].model = new Model(gSphereMesh);
+        gCubeMapSphere[i].renderMode = CubeMap;
 
-    gModels[36] = &gSkyTeapot;
-    gModels[37] = &gSkyBall;
-    gModels[38] = &gSkyBall2;
+        gModels[37+i] = &gCubeMapSphere[i];
+    }
+    gCubeMapSphere[0].texture = &gNatureTexture;
+    gCubeMapSphere[1].texture = &gSpaceTexture;
+    gCubeMapSphere[2].texture = &gSkyTexture;
+   
+    gCubeMapSphere[0].model->SetPosition({ 70, 25, 140 });
+
+    gCubeMapSphere[1].model->SetScale(0.72f);
+    gCubeMapSphere[1].model->SetPosition({ 54, 45, 143 });
+
+    gCubeMapSphere[2].model->SetScale(0.52f);
+    gCubeMapSphere[2].model->SetPosition({ 68.5f, 61, 138 });
 
     //// Set up lights ////
     int lightIndex = 0;
@@ -595,6 +604,11 @@ bool InitScene()
     gPointlights[1].SetStrength(10);
     gPointlights[1].model->SetPosition({ -62.8f, 100, 103.5f });
     gPointlights[1].MakeFlicker();
+
+    // Pointlights
+    gPointlights[2].colour = { 0.2f, 0.8f, 0.9f };
+    gPointlights[2].SetStrength(15);
+    gPointlights[2].model->SetPosition({ 4, 28, 115 });
 
     return true;
 }
