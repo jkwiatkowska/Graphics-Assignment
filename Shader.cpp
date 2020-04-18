@@ -31,6 +31,8 @@ ID3D11PixelShader*  gAlphaLightingPixelShader   = nullptr;
 ID3D11PixelShader*  gBrightPixelShader          = nullptr;
 ID3D11PixelShader*  gTextureGradientPixelShader = nullptr;
 ID3D11PixelShader*  gCubeMapPixelShader         = nullptr;
+ID3D11PixelShader*  gCubeMapLightPixelShader    = nullptr;
+ID3D11PixelShader*  gCubeMapAnimatedPixelShader = nullptr;
 
 //--------------------------------------------------------------------------------------
 // Shader creation / destruction
@@ -58,13 +60,15 @@ bool LoadShaders()
     gBrightPixelShader           = LoadPixelShader("Bright_ps");
     gTextureGradientPixelShader  = LoadPixelShader("TextureGradient_ps");
     gCubeMapPixelShader          = LoadPixelShader("CubeMap_ps");
+    gCubeMapLightPixelShader     = LoadPixelShader("CubeMapLight_ps");
+    gCubeMapAnimatedPixelShader  = LoadPixelShader("AnimatedCubeMap_ps");
 
     if (gDefaultVertexShader        == nullptr  || gDefaultPixelShader       == nullptr   || gBrightPixelShader          == nullptr ||
         gNormalMappingVertexShader  == nullptr  || gNormalMappingPixelShader == nullptr   || gParallaxMappingPixelShader == nullptr ||
         gWiggleVertexShader         == nullptr  || gWigglePixelShader        == nullptr   || gTextureGradientPixelShader == nullptr ||
         gBasicTransformVertexShader == nullptr  || gLightModelPixelShader    == nullptr   || gDepthOnlyPixelShader       == nullptr ||
         gTexFadePixelShader         == nullptr  || gAlphaPixelShader         == nullptr   || gAlphaLightingPixelShader   == nullptr ||
-        gCubeMapPixelShader         == nullptr)
+        gCubeMapPixelShader         == nullptr  || gCubeMapLightPixelShader  == nullptr   || gCubeMapAnimatedPixelShader == nullptr)
     {
         gLastError = "Error loading shaders";
         return false;
@@ -92,9 +96,9 @@ void ReleaseShaders()
     if (gBrightPixelShader)           gBrightPixelShader->Release();
     if (gTextureGradientPixelShader)  gTextureGradientPixelShader->Release();
     if (gCubeMapPixelShader)          gCubeMapPixelShader->Release();
+    if (gCubeMapLightPixelShader)     gCubeMapLightPixelShader->Release();
+    if (gCubeMapAnimatedPixelShader)  gCubeMapAnimatedPixelShader->Release();
 }
-
-
 
 // Load a vertex shader, include the file in the project and pass the name (without the .hlsl extension)
 // to this function. The returned pointer needs to be released before quitting. Returns nullptr on failure. 

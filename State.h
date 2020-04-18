@@ -36,7 +36,6 @@ extern ID3D11DepthStencilState* gUseDepthBufferState;
 extern ID3D11DepthStencilState* gDepthReadOnlyState;
 extern ID3D11DepthStencilState* gNoDepthBufferState;
 
-
 //--------------------------------------------------------------------------------------
 // State creation / destruction
 //--------------------------------------------------------------------------------------

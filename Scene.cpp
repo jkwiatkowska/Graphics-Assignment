@@ -51,9 +51,11 @@ Texture gDecalTexture[3]   = { Texture("acorn.png"), Texture("tank.png"), Textur
 Texture gBuildingTexture   = Texture("bld-mt.jpg");
 Texture gGravelTexture     = Texture("gravel.jpg");
 
-const int NUM_CUBETEXTURES = 1;
+const int NUM_CUBETEXTURES = 3;
 Texture* gCubeTextures[NUM_CUBETEXTURES];
 Texture gSkyTexture        = Texture("skymap.dds");
+Texture gSpaceTexture      = Texture("space.dds");
+Texture gCloudsTexture     = Texture("clouds.dds");
 
 //--------------------------------------------------------------------------------------
 // Scene Data
@@ -79,7 +81,7 @@ Mesh* gQuadMesh;
 Mesh* gBuildingMesh;
 Mesh* gHillMesh;
 
-const int NUM_MODELS = 36;
+const int NUM_MODELS = 39;
 SceneModel* gModels[NUM_MODELS];
 
 SceneModel gTeapot = SceneModel(&gStoneTexture);                // 0
@@ -106,7 +108,10 @@ SceneModel gHill = SceneModel(&gGrassTexture, &gGravelTexture); // 27
 const int NUM_LANDSPHERES = 7;
 SceneModel gLandSpheres[NUM_LANDSPHERES];                       // 28-34
 
-SceneModel gSky = SceneModel(&gSkyTexture);                     // 35
+SceneModel gSky = SceneModel(&gSpaceTexture, &gCloudsTexture);  // 35
+SceneModel gSkyTeapot = SceneModel(&gSkyTexture);               // 36
+SceneModel gSkyBall = SceneModel(&gSpaceTexture);               // 37
+SceneModel gSkyBall2 = SceneModel(&gSkyTexture);                // 38
 
 Camera* gCamera;
 
@@ -317,11 +322,13 @@ bool InitGeometry()
     srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
 
     gCubeTextures[0] = &gSkyTexture;
+    gCubeTextures[1] = &gSpaceTexture;
+    gCubeTextures[2] = &gCloudsTexture;
     for (int i = 0; i < NUM_CUBETEXTURES; i++)
     {
         if (!LoadTexture(gCubeTextures[i]->name, &gCubeTextures[i]->diffuseSpecularMap, &gCubeTextures[i]->diffuseSpecularMapSRV))
         {
-            gLastError = "Error loading textures";
+            gLastError = "Error loading cube textures";
             return false;
         }
     }
@@ -508,11 +515,31 @@ bool InitScene()
     gLandSpheres[6].model->SetScale(1.5f);
     gLandSpheres[6].model->SetPosition({ 15, 40, 310 });
     
-    // Sky
-    gSky.model = new Model(gTeapotMesh);
-    gSky.renderMode = CubeMap;
-    gSky.model->SetPosition({ 0, 20, 0 });
+    // Sky sphere
+    gSky.model = new Model(gSphereMesh);
+    gSky.renderMode = CubeMapAnimated;
+    gSky.model->SetScale(115);
+    gSky.model->SetPosition({ 0, -20, 0 });
+
     gModels[35] = &gSky;
+
+    // Sky objects
+    gSkyTeapot.model = new Model(gTeapotMesh);
+    gSkyTeapot.renderMode = CubeMapLight;
+    gSkyTeapot.model->SetPosition({ 35, 30, 130 });
+
+    gSkyBall.model = new Model(gSphereMesh);
+    gSkyBall.renderMode = CubeMap;
+    gSkyBall.model->SetPosition({ 70, 25, 140 });
+
+    gSkyBall2.model = new Model(gSphereMesh);
+    gSkyBall2.model->SetScale(0.68f);
+    gSkyBall2.renderMode = CubeMap;
+    gSkyBall2.model->SetPosition({ 55, 45, 143 });
+
+    gModels[36] = &gSkyTeapot;
+    gModels[37] = &gSkyBall;
+    gModels[38] = &gSkyBall2;
 
     //// Set up lights ////
     int lightIndex = 0;
@@ -541,8 +568,8 @@ bool InitScene()
     gSpotlights[0].model->FaceTarget(gTeapot.model->Position());
 
     // Far light
-    gSpotlights[1].colour = { 1.0f, 0.8f, 0.2f };
-    gSpotlights[1].SetStrength(70);
+    gSpotlights[1].colour = { 0.6f, 0.9f, 0.8f };
+    gSpotlights[1].SetStrength(90);
     gSpotlights[1].model->SetPosition({ -120, 200, 475 });
     gSpotlights[1].model->FaceTarget({ 0, 0, -100 });
     gSpotlights[1].isSpot = false;
@@ -730,12 +757,34 @@ void RenderSceneFromCamera(Camera* camera)
     }
 
     gD3DContext->PSSetSamplers(0, 1, &gCubeMapSampler);
+    gD3DContext->RSSetState(gCullNoneState);
     gD3DContext->PSSetShader(gCubeMapPixelShader, nullptr, 0);
     for (int i = 0; i < NUM_MODELS; i++)
     {
         if (gModels[i]->renderMode == CubeMap)
         {
             gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
+            gModels[i]->model->Render();
+        }
+    }
+
+    gD3DContext->PSSetShader(gCubeMapLightPixelShader, nullptr, 0);
+    for (int i = 0; i < NUM_MODELS; i++)
+    {
+        if (gModels[i]->renderMode == CubeMapLight)
+        {
+            gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
+            gModels[i]->model->Render();
+        }
+    }
+
+    gD3DContext->PSSetShader(gCubeMapAnimatedPixelShader, nullptr, 0);
+    for (int i = 0; i < NUM_MODELS; i++)
+    {
+        if (gModels[i]->renderMode == CubeMapAnimated)
+        {
+            gD3DContext->PSSetShaderResources(0, 1, &gModels[i]->texture->diffuseSpecularMapSRV);
+            gD3DContext->PSSetShaderResources(4, 1, &gModels[i]->texture2->diffuseSpecularMapSRV);
             gModels[i]->model->Render();
         }
     }

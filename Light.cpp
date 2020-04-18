@@ -117,7 +117,7 @@ void Spotlight::RenderShadowMap(int numModels, SceneModel* models[])
     for (int i = 0; i < numModels; i++)
     {
         if (models[i]->renderMode == Default || models[i]->renderMode == TextureFade || models[i]->renderMode == NormalMap || models[i]->renderMode == ParallaxMap || models[i]->renderMode == Bright ||
-            models[i]->renderMode == TextureGradient)
+            models[i]->renderMode == TextureGradient || models[i]->renderMode == CubeMapLight || models[i]->renderMode == CubeMap)
             models[i]->model->Render();
     }
     gD3DContext->VSSetShader(gWiggleVertexShader, nullptr, 0);

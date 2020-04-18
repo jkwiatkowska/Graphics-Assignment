@@ -40,7 +40,6 @@ ID3D11DepthStencilState* gDepthReadOnlyState  = nullptr;
 ID3D11DepthStencilState* gNoDepthBufferState  = nullptr;
 
 
-
 //--------------------------------------------------------------------------------------
 // State creation / destruction
 //--------------------------------------------------------------------------------------

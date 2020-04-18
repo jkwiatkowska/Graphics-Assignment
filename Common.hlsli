@@ -231,3 +231,11 @@ void CalculateLighting(Texture2D ShadowMap[15], float3 worldPosition, float3 wor
         specularLight += diffuseLight * pow(max(dot(worldNormal, halfway), 0), gSpecularPower);
     }
 }
+
+float3x3 GetRotationMatrixX(float a)
+{
+    float3x3 rotationMatrix = { float3(1.0, 0.0,	0.0),
+                                float3(0.0, cos(a), -sin(a)),
+                                float3(0.0, sin(a), cos(a)) };
+    return rotationMatrix;
+}
