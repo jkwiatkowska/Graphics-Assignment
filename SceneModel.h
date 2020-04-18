@@ -33,16 +33,8 @@ public:
 
 	}
 
-	SceneModel(Texture* modelTexture, Texture* modelTexture2 = nullptr)
-	{
-		texture = modelTexture;
-		texture2 = modelTexture2;
-	}
+	SceneModel(Texture* modelTexture, Texture* modelTexture2 = nullptr);
 
-	~SceneModel()
-	{
-		delete model;
-		model = nullptr;
-	}
+	~SceneModel();
 };
 

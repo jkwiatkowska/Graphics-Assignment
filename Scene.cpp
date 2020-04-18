@@ -81,7 +81,7 @@ Mesh* gQuadMesh;
 Mesh* gBuildingMesh;
 Mesh* gHillMesh;
 
-const int NUM_MODELS = 41;
+const int NUM_MODELS = 42;
 SceneModel* gModels[NUM_MODELS];
 
 SceneModel gTeapot = SceneModel(&gStoneTexture);                // 0
@@ -113,6 +113,8 @@ SceneModel gCubeMapTeapot = SceneModel(&gSkyTexture, &gCloudsTexture);  // 36
 SceneModel gCubeMapSphere[3];                                           // 37-39
 
 SceneModel gCrate2 = SceneModel(&gCrateTexture);                 // 40
+
+SceneModel gWiggleTeapot = SceneModel(&gPatternTexture);         // 41
 
 Camera* gCamera;
 
@@ -486,7 +488,7 @@ bool InitScene()
     gHill.model = new Model(gHillMesh);
     gHill.model->SetScale(3.5f);
     gHill.model->SetPosition({ -65, -15, -20 });
-    gHill.renderMode = TextureGradient;
+    gHill.renderMode = TexGradientNS;
 
     gModels[27] = &gHill;
 
@@ -556,7 +558,17 @@ bool InitScene()
     gCrate2.model->SetRotation({ 0.0f, ToRadians(-20.0f), 0.0f });
     gCrate.renderMode = Bright;
 
+    // Second crate
     gModels[40] = &gCrate2;
+
+    // Wggle teapot
+    gWiggleTeapot.model = new Model(gTeapotMesh);
+    gWiggleTeapot.renderMode = Wiggle;
+    gWiggleTeapot.model->SetPosition({ -60, 4, 190 });
+    gWiggleTeapot.model->SetRotation({ 0.0f, 0.0f, ToRadians(-20.0f) });
+    gWiggleTeapot.model->SetScale(1.4f);
+
+    gModels[41] = &gWiggleTeapot;
 
     //// Set up lights ////
     int lightIndex = 0;
